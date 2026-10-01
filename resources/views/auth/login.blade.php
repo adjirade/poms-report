@@ -94,9 +94,9 @@
             <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p class="text-sm text-blue-800">
                     <i class="fas fa-info-circle mr-2"></i>
-                    <strong>Demo Credentials (hanya mode debug):</strong><br>
+                    <strong>Akun bootstrap (hanya mode debug):</strong><br>
                     Phone: <code class="bg-blue-100 px-2 py-1 rounded">6281234567890</code><br>
-                    Password: <code class="bg-blue-100 px-2 py-1 rounded">password123</code>
+                    Password: <span class="text-xs">lihat output <code>db:seed</code> atau env <code>ADMIN_INITIAL_PASSWORD</code></span>
                 </p>
             </div>
             @endif

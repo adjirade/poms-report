@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HQSyncMonitorController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\ValidationRuleController;
 use App\Http\Controllers\ExportController;
@@ -120,6 +121,12 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
     Route::middleware('can:edit-validation-rules')->prefix('settings')->name('settings.')->group(function () {
         Route::get('/validation-rules', [ValidationRuleController::class, 'index'])->name('validation-rules');
         Route::put('/validation-rules/{id}', [ValidationRuleController::class, 'update'])->name('validation-rules.update');
+    });
+    
+    // HQ Sync Monitoring (developer only)
+    Route::middleware('can:access-settings')->prefix('settings')->name('settings.')->group(function () {
+        Route::get('/hq-sync', [HQSyncMonitorController::class, 'index'])->name('hq-sync');
+        Route::post('/hq-sync/run', [HQSyncMonitorController::class, 'run'])->name('hq-sync.run');
     });
     
     // Analytics (Askep and above)

@@ -22,4 +22,9 @@ return [
     // Selisih jam maksimum (timestamp_kirim vs timestamp_server) sebelum
     // record otomatis di-flag sebagai anomali waktu.
     'time_discrepancy_hours' => env('VALIDATION_TIME_DISCREPANCY_HOURS', 4),
+
+    // Password akun bootstrap dari `php artisan db:seed`. Kosong = generator
+    // acak (dicetak SEKALI ke console). Jangan hardcode di repo.
+    'bootstrap_admin_password' => env('ADMIN_INITIAL_PASSWORD', ''),
+    'bootstrap_operator_password' => env('OPERATOR_INITIAL_PASSWORD', ''),
 ];

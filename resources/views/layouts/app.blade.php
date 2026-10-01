@@ -142,9 +142,18 @@
             <!-- Settings -->
             @can('edit-validation-rules')
             <a href="{{ route('settings.validation-rules') }}" 
-               class="flex items-center space-x-3 p-3 rounded {{ request()->routeIs('settings.*') ? 'bg-green-700' : 'hover:bg-green-700' }}">
+               class="flex items-center space-x-3 p-3 rounded {{ request()->routeIs('settings.validation-rules*') ? 'bg-green-700' : 'hover:bg-green-700' }}">
                 <i class="fas fa-cog w-6"></i>
                 <span x-show="sidebarOpen" x-cloak>Settings</span>
+            </a>
+            @endcan
+            
+            <!-- HQ Sync Monitor (developer) -->
+            @can('access-settings')
+            <a href="{{ route('settings.hq-sync') }}" 
+               class="flex items-center space-x-3 p-3 rounded {{ request()->routeIs('settings.hq-sync*') ? 'bg-green-700' : 'hover:bg-green-700' }}">
+                <i class="fas fa-satellite-dish w-6"></i>
+                <span x-show="sidebarOpen" x-cloak>HQ Sync Monitor</span>
             </a>
             @endcan
             
