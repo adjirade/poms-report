@@ -27,16 +27,15 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install dependencies
-RUN composer install --no-interaction --optimize-autoloader --no-dev
-RUN npm install
+RUN composer install --no-interaction --optimize-autoloader --no-dev \
+    && composer dump-autoload --optimize
 
-# Generate optimized autoload
-RUN composer dump-autoload --optimize
-
-# Set permissions
+# Aplikasi berjalan sebagai user non-root (www-data) — bukan root.
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
+
+USER www-data
 
 EXPOSE 8000
 

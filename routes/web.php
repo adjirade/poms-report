@@ -20,8 +20,9 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// DEBUG ROUTE - Check authentication status (developer only)
-Route::get('/debug-auth', function () {
+// DEBUG ROUTE - Check authentication status (developer only, local only)
+if (app()->environment('local')) {
+    Route::get('/debug-auth', function () {
     $user = auth()->user();
     if (!$user) {
         return response()->json(['authenticated' => false, 'message' => 'Not logged in']);
@@ -52,7 +53,8 @@ Route::get('/debug-auth', function () {
             'access-full-dashboard' => auth()->user()->can('access-full-dashboard'),
         ]
     ]);
-})->middleware('auth');
+    })->middleware('auth');
+}
 
 // Simple authentication routes
 Route::get('/login', function () {

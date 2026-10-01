@@ -123,6 +123,14 @@ class LoginAndRbacTest extends TestCase
 
     public function test_debug_auth_route_is_developer_only(): void
     {
+        // Route /debug-auth hanya ter-registrasi di environment local
+        // (ship-gate: jangan sampai terekspos di produksi/testing).
+        if (!app()->environment('local')) {
+            $this->get('/debug-auth')->assertNotFound();
+
+            return;
+        }
+
         User::create([
             'name' => 'Manager X',
             'phone_number' => '628666666666',

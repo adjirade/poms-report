@@ -12,6 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Percayai header X-Forwarded-* dari proxy/load balancer (produksi).
+        // APP_TRUSTED_PROXIES=127.0.0.1,RANGE 172.17.0.0/16
+        $trustedProxies = array_filter(array_map('trim', explode(',', (string) env('APP_TRUSTED_PROXIES', ''))));
+        if ($trustedProxies !== []) {
+            $middleware->trustProxies(at: $trustedProxies);
+        }
+
         $middleware->alias([
             'hq.token' => \App\Http\Middleware\VerifyHQToken::class,
         ]);

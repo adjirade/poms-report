@@ -29,4 +29,8 @@ return [
 
     // HTTP timeout dalam detik untuk push ke HQ.
     'timeout' => env('HQ_SYNC_TIMEOUT', 30),
+
+    // Paksa semua URL aplikasi ke https:// (set true di produksi di belakang
+    // reverse proxy / load balancer TLS). Default false untuk pengembangan lokal.
+    'force_https' => env('APP_FORCE_HTTPS', false),
 ];
