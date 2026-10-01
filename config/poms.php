@@ -27,4 +27,12 @@ return [
     // acak (dicetak SEKALI ke console). Jangan hardcode di repo.
     'bootstrap_admin_password' => env('ADMIN_INITIAL_PASSWORD', ''),
     'bootstrap_operator_password' => env('OPERATOR_INITIAL_PASSWORD', ''),
+
+    // Data demo (DemoDataSeeder): dashboard/chart terisi riwayat ~30 hari.
+    // Aktifkan dengan POMS_SEED_DEMO=true saat db:seed / migrate:fresh --seed.
+    // JANGAN aktifkan di produksi.
+    'seed_demo' => env('POMS_SEED_DEMO', false),
+
+    // Password bersama semua akun demo DemoDataSeeder (bukan akun bootstrap).
+    'demo_password' => env('POMS_DEMO_PASSWORD', 'demo12345'),
 ];
