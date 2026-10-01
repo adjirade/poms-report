@@ -29,3 +29,6 @@ yarn-error.log
 bootstrap/cache/*.php
 .env
 
+
+# HQ sync simulation artifacts
+/storage/sim/
