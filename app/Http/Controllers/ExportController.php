@@ -34,9 +34,16 @@ class ExportController extends Controller
             'date_to' => 'nullable|date|after_or_equal:date_from',
         ]);
 
-        // Default to today when not provided (station page links)
-        $dateFrom = $request->input('date_from', now()->format('Y-m-d'));
-        $dateTo = $request->input('date_to', now()->format('Y-m-d'));
+        // Default ke hari ini. filled() dipakai (bukan input(x, default)) karena
+        // parameter yang dikirim TAPI kosong ("") dinilai null oleh middleware
+        // ConvertEmptyStringsToNull — whereDate(..., null) melempar exception
+        // "Illegal operator and value combination".
+        $dateFrom = $request->filled('date_from')
+            ? $request->input('date_from')
+            : now()->format('Y-m-d');
+        $dateTo = $request->filled('date_to')
+            ? $request->input('date_to')
+            : now()->format('Y-m-d');
 
         $modelClass = $this->validation->getStationModel($station);
         $user = auth()->user();
@@ -147,9 +154,13 @@ class ExportController extends Controller
             'date_to' => 'nullable|date|after_or_equal:date_from',
         ]);
 
-        // Default to today when not provided (station page links)
-        $dateFrom = $request->input('date_from', now()->format('Y-m-d'));
-        $dateTo = $request->input('date_to', now()->format('Y-m-d'));
+        // Sama seperti method pdf(): hindari whereDate dengan value null.
+        $dateFrom = $request->filled('date_from')
+            ? $request->input('date_from')
+            : now()->format('Y-m-d');
+        $dateTo = $request->filled('date_to')
+            ? $request->input('date_to')
+            : now()->format('Y-m-d');
 
         $filename = "{$station}_{$dateFrom}_to_{$dateTo}.xlsx";
 
@@ -174,7 +185,7 @@ class ExportController extends Controller
             'date' => 'nullable|date',
         ]);
 
-        $date = $request->input('date', now()->format('Y-m-d'));
+        $date = $request->filled('date') ? $request->input('date') : now()->format('Y-m-d');
         $user = auth()->user();
 
         // Aggregate data from all stations
