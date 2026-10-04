@@ -44,23 +44,55 @@ window.PomsStationChart = {
             ? window.PomsChart.axis.bind(window.PomsChart)
             : (o = {}) => o;
 
+        // Bangun dataset: garis utama (dengan penanda anomali) + moving average
+        // 7 hari (garis putus-putus) bila tersedia (A5).
+        const datasets = [];
+        series.forEach((s) => {
+            const anomalyIdx = new Set(s.anomalies || (s.anomaly_points || []).map((p) => p.index));
+
+            datasets.push({
+                label: s.unit ? `${s.label} (${s.unit})` : s.label,
+                data: s.data,
+                borderColor: s.color,
+                backgroundColor: window.PomsChart?.area
+                    ? window.PomsChart.area(canvas.getContext('2d'), s.color)
+                    : hexToRgba(s.color, 0.15),
+                pointBackgroundColor: (s.data || []).map((_, i) => (anomalyIdx.has(i) ? '#ef4444' : s.color)),
+                pointBorderColor: (s.data || []).map((_, i) => (anomalyIdx.has(i) ? '#b91c1c' : s.color)),
+                pointRadius: (ctx) => {
+                    if (ctx.dataIndex === undefined) return 0;
+                    if (anomalyIdx.has(ctx.dataIndex)) return 5;
+                    return labels.length > 45 ? 0 : 2;
+                },
+                pointHoverRadius: 6,
+                fill: series.length === 1,
+                spanGaps: true,
+                meta: { label: s.label, unit: s.unit || '', ma: false },
+                _anomalies: anomalyIdx,
+            });
+
+            if (Array.isArray(s.ma) && s.ma.some((v) => v !== null)) {
+                datasets.push({
+                    label: `MA7 ${s.label}`,
+                    data: s.ma,
+                    borderColor: s.color,
+                    backgroundColor: 'transparent',
+                    borderDash: [6, 4],
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    fill: false,
+                    spanGaps: true,
+                    meta: { label: `MA7 ${s.label}`, unit: s.unit || '', ma: true },
+                });
+            }
+        });
+
         const chart = new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: {
                 labels,
-                datasets: series.map((s) => ({
-                    label: s.unit ? `${s.label} (${s.unit})` : s.label,
-                    data: s.data,
-                    borderColor: s.color,
-                    backgroundColor: window.PomsChart?.area
-                        ? window.PomsChart.area(canvas.getContext('2d'), s.color)
-                        : hexToRgba(s.color, 0.15),
-                    pointBackgroundColor: s.color,
-                    pointRadius: (ctx) => (labels.length > 45 ? 0 : ctx.dataIndex === undefined ? 0 : 2),
-                    pointHoverRadius: 5,
-                    fill: series.length === 1,
-                    spanGaps: true,
-                })),
+                datasets,
             },
             options: {
                 responsive: true,
@@ -72,10 +104,13 @@ window.PomsStationChart = {
                         callbacks: {
                             title: (items) => (items[0] ? String(items[0].label) : ''),
                             label: (item) => {
-                                const s = series[item.datasetIndex] || {};
+                                const m = item.dataset.meta || {};
                                 const value = item.parsed.y;
-                                const unit = s.unit ? ` ${s.unit}` : '';
-                                return `${s.label ?? item.dataset.label}: ${value ?? '—'}${unit}`;
+                                const unit = m.unit ? ` ${m.unit}` : '';
+                                const anomaly = !m.ma && item.dataset._anomalies?.has(item.dataIndex)
+                                    ? ' ⚠️ anomali'
+                                    : '';
+                                return `${m.label ?? item.dataset.label}: ${value ?? '—'}${unit}${anomaly}`;
                             },
                             afterBody: (items) => {
                                 if (!counts) {

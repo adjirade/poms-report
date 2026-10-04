@@ -24,6 +24,11 @@
                     <i class="fas fa-clock text-green-600"></i>
                     Rentang: {{ $range }} hari terakhir &middot; {{ $totalInRange }} record
                     <span class="badge badge-neutral">🚩 {{ $flaggedInRange }} flagged</span>
+                    @if($chart['anomaly_count'] > 0)
+                        <span class="badge border-amber-200 bg-amber-100 text-amber-800">
+                            <i class="fas fa-triangle-exclamation"></i> {{ $chart['anomaly_count'] }} anomali
+                        </span>
+                    @endif
                 </div>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -79,6 +84,8 @@
             <div class="flex items-center gap-2">
                 <span class="hidden text-xs text-gray-500 sm:inline">
                     <i class="fas fa-arrows-left-right"></i> Drag area untuk zoom &middot; Ctrl+scroll
+                    &middot; <span class="font-medium">garis putus-putus</span> = MA 7 hari
+                    &middot; <span class="font-medium text-rose-600">titik merah</span> = anomali (&gt;2σ)
                 </span>
                 <button type="button" onclick="PomsStationChart.reset('stationPerformanceChart')"
                         class="btn-ghost !min-h-0 !px-3 !py-1.5 text-xs">
@@ -107,6 +114,45 @@
                 Grafik menampilkan rata-rata harian parameter: {{ collect($chart['series'])->pluck('label')->implode(', ') }}.
             </p>
         </div>
+    </div>
+
+    <!-- Deteksi anomali (A5) -->
+    <div class="card card-pad">
+        <h2 class="mb-4 text-lg font-bold text-gray-800">
+            <i class="fas fa-triangle-exclamation text-amber-600 mr-2"></i>
+            Deteksi Anomali — {{ $stationTitle }} ({{ $range }} hari)
+        </h2>
+        <p class="mb-3 text-xs text-gray-500">
+            Hari dengan nilai parameter menyimpang &gt; 2× simpangan baku dari rata-rata rentang
+            (butuh minimal 7 titik data). Analisis statistik, bukan pengganti verifikasi manual.
+        </p>
+        @php
+            $anomalousSeries = collect($chart['series'])->filter(fn ($s) => count($s['anomaly_points']) > 0);
+        @endphp
+        @if($anomalousSeries->isEmpty())
+            <p class="rounded-2xl bg-emerald-100/60 px-4 py-4 text-sm font-medium text-emerald-800">
+                <i class="fas fa-check-circle mr-1"></i> Tidak terdeteksi anomali pada rentang ini.
+            </p>
+        @else
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            @foreach($anomalousSeries as $s)
+            <div class="rounded-2xl border border-white/50 bg-white/60 p-4">
+                <p class="text-sm font-semibold text-gray-800">
+                    {{ $s['label'] }}@if($s['unit']) <span class="text-gray-500">({{ $s['unit'] }})</span>@endif
+                    <span class="badge ml-1 border-amber-200 bg-amber-100 text-amber-800">{{ count($s['anomaly_points']) }}</span>
+                </p>
+                <ul class="mt-2 space-y-1 text-xs text-gray-600">
+                    @foreach($s['anomaly_points'] as $p)
+                    <li class="flex items-center justify-between">
+                        <span><i class="far fa-calendar text-rose-500"></i> {{ $p['date'] }}</span>
+                        <span class="font-semibold text-rose-700">{{ number_format($p['value'], 2) }}</span>
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+            @endforeach
+        </div>
+        @endif
     </div>
 
     <!-- Volume harian + status verifikasi -->

@@ -24,7 +24,10 @@ class StationAnalyticsService
      * Output siap konsumsi chart: label tanggal (kontinu, hari kosong diisi
      * null agar garis tidak menipu) + dataset per parameter.
      *
-     * @return array{labels: array<int, string>, series: array<int, array{key: string, label: string, unit: string, color: string, data: array<int, float|null>}>}, counts: array{total: array<int, int>, flagged: array<int, int>}}
+     * Setiap series juga membawa `ma` (moving average 7 hari) dan
+     * `anomaly_points` (hari dengan deviasi > 2σ dari rata-rata) untuk A5.
+     *
+     * @return array{labels: array<int, string>, series: array<int, array{key: string, label: string, unit: string, color: string, data: array<int, float|null>, ma: array<int, float|null>, anomaly_points: array<int, array{index: int, date: string, value: float, mean: float}>}>, counts: array{total: array<int, int>, flagged: array<int, int>}, anomaly_count: int}
      */
     public function dailySeries(string $plantId, string $station, Carbon $since, Carbon $until): array
     {
@@ -73,11 +76,88 @@ class StationAnalyticsService
             }
         }
 
+        // A5 — moving average 7 hari + deteksi anomali (>2σ) per series.
+        $anomalyCount = 0;
+        foreach ($series as $key => $s) {
+            $series[$key]['ma'] = $this->movingAverage($s['data']);
+            $series[$key]['anomaly_points'] = $this->anomalyPoints($s['data'], $labels);
+            $anomalyCount += count($series[$key]['anomaly_points']);
+        }
+
         return [
             'labels' => $labels,
             'series' => array_values($series),
             'counts' => $counts,
+            'anomaly_count' => $anomalyCount,
         ];
+    }
+
+    /**
+     * Moving average trailing (default 7 hari), mengabaikan nilai kosong.
+     * Null bila jendela memiliki < 3 titik data (terlalu sedikit untuk stabil).
+     *
+     * @param  array<int, float|null>  $values
+     * @return array<int, float|null>
+     */
+    protected function movingAverage(array $values, int $window = 7): array
+    {
+        $result = [];
+        $count = count($values);
+
+        for ($i = 0; $i < $count; $i++) {
+            $slice = [];
+            for ($j = max(0, $i - $window + 1); $j <= $i; $j++) {
+                if (($values[$j] ?? null) !== null) {
+                    $slice[] = (float) $values[$j];
+                }
+            }
+            $result[$i] = count($slice) >= 3 ? round(array_sum($slice) / count($slice), 2) : null;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Titik hari yang dianggap anomali: |nilai - rata-rata| > 2 × simpangan baku
+     * (glossary: A5). Butuh minimal 7 titik data agar deteksi bermakna.
+     *
+     * @param  array<int, float|null>  $values
+     * @param  array<int, string>  $labels
+     * @return array<int, array{index: int, date: string, value: float, mean: float}>
+     */
+    protected function anomalyPoints(array $values, array $labels): array
+    {
+        $nums = array_values(array_filter($values, fn ($v) => $v !== null));
+        $count = count($nums);
+
+        if ($count < 7) {
+            return [];
+        }
+
+        $mean = array_sum($nums) / $count;
+        $variance = array_sum(array_map(fn ($v) => ((float) $v - $mean) ** 2, $nums)) / $count;
+        $stdDev = sqrt($variance);
+
+        if ($stdDev <= 0.0) {
+            return [];
+        }
+
+        $points = [];
+        foreach ($values as $i => $value) {
+            if ($value === null) {
+                continue;
+            }
+            if (abs((float) $value - $mean) > 2 * $stdDev) {
+                $points[] = [
+                    'index' => $i,
+                    'date' => $labels[$i] ?? '',
+                    'value' => round((float) $value, 2),
+                    'mean' => round($mean, 2),
+                ];
+            }
+        }
+
+        return $points;
     }
 
     /**

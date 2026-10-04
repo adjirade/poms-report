@@ -138,6 +138,7 @@ class ExportController extends Controller
             'targetProgress' => $targetProgress,
             'shiftBreakdown' => $shiftBreakdown,
             'seriesConfig' => StationChartConfig::series($station),
+            'chartSeries' => $chart['series'],
             'dailyRows' => $dailyRows,
             'chartImage' => $chartImage,
         ])

@@ -255,6 +255,32 @@
         </tbody>
     </table>
 
+    @if(! empty($chartSeries) && collect($chartSeries)->contains(fn ($s) => count($s['anomaly_points'] ?? []) > 0))
+    <div class="section-title">DETEKSI ANOMALI (&gt; 2&sigma;) — ANALISIS STATISTIK</div>
+    <table class="data">
+        <thead>
+            <tr>
+                <th style="width: 30%;">Parameter</th>
+                <th style="width: 24%;">Tanggal</th>
+                <th style="width: 23%;">Nilai</th>
+                <th style="width: 23%;">Rata-rata Rentang</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($chartSeries as $s)
+                @foreach($s['anomaly_points'] ?? [] as $point)
+                <tr>
+                    <td>{{ $s['label'] }}@if($s['unit']) ({{ $s['unit'] }})@endif</td>
+                    <td>{{ $point['date'] }}</td>
+                    <td class="flagged-cell">{{ number_format($point['value'], 2) }}</td>
+                    <td>{{ number_format($point['mean'], 2) }}</td>
+                </tr>
+                @endforeach
+            @endforeach
+        </tbody>
+    </table>
+    @endif
+
     @if(count($shiftBreakdown) > 0)
     <div class="section-title">ANALISIS PER SHIFT ({{ $range }} HARI)</div>
     <table class="data">

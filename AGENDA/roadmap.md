@@ -39,8 +39,9 @@
 - ✅ A2 Rekap otomatis Telegram + perintah `/rekap` on-demand di bot.
 - ✅ A3 Analisis per shift — halaman performa stasiun + PDF.
 - ✅ A4 Statistik penyebab flagged.
+- ✅ A5 Tren + deteksi anomali — moving average 7 hari (garis putus-putus) + penanda hari anomali (>2σ) di chart Performa Stasiun, ringkasan & tabel anomali di web + PDF.
 - ✅ A6 Target vs Realisasi — `App\Support\KpiTargetConfig` + progress bar di Command Center & Performa Stasiun + PDF.
 - ✅ B1 Kalkulator pabrik.
 - ✅ B4 Laporan terjadwal PDF ke Telegram.
 - 🆕 Environment Editor (role developer) — `settings/environment`: ubah token bot/API/username/identitas pabrik lewat UI + uji koneksi bot (`getMe`).
-- Berikutnya: A5 (tren + deteksi anomali) → B3 (tiket maintenance) → B5 → B2.
+- Berikutnya: B3 (tiket maintenance) → B5 (dry-run validation) → B2 (approval multi-level).

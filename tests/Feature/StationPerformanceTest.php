@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\LogTimbang;
 use App\Models\User;
+use App\Services\StationAnalyticsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -109,6 +110,59 @@ class StationPerformanceTest extends TestCase
             ->assertSee('tonase_bruto')
             // Tabel detail menampilkan record flagged
             ->assertSee('Flagged');
+    }
+
+    public function test_anomalous_day_is_detected_and_moving_average_computed(): void
+    {
+        $operator = $this->makeUser('operator', '628700000010', 'proses');
+
+        // 10 hari data normal (4.5%) + 1 hari ekstrem (90%) > 2σ.
+        for ($i = 9; $i >= 0; $i--) {
+            $day = now()->subDays($i);
+            $this->makeTimbangRecord($operator, [
+                'potongan_persen' => $i === 0 ? 90.0 : 4.5,
+                'timestamp_kirim' => $day,
+                'timestamp_server' => $day,
+            ]);
+        }
+
+        $chart = app(StationAnalyticsService::class)->dailySeries(
+            'PKS_01',
+            'timbang',
+            now()->subDays(9)->startOfDay(),
+            now()->endOfDay(),
+        );
+
+        $series = collect($chart['series'])->firstWhere('key', 'potongan_persen');
+
+        $this->assertNotEmpty($series['anomaly_points']);
+        $this->assertSame(1, count($series['anomaly_points']));
+        $this->assertSame(90.0, $series['anomaly_points'][0]['value']);
+        $this->assertGreaterThan(0, $chart['anomaly_count']);
+
+        // Moving average 7 hari terisi begitu ada cukup data.
+        $this->assertTrue(collect($series['ma'])->filter(fn ($v) => $v !== null)->isNotEmpty());
+    }
+
+    public function test_anomaly_section_is_rendered_on_page(): void
+    {
+        $manager = $this->makeUser('manager', '628700000011');
+        $operator = $this->makeUser('operator', '628700000012', 'proses');
+
+        for ($i = 9; $i >= 0; $i--) {
+            $day = now()->subDays($i);
+            $this->makeTimbangRecord($operator, [
+                'potongan_persen' => $i === 0 ? 90.0 : 4.5,
+                'timestamp_kirim' => $day,
+                'timestamp_server' => $day,
+            ]);
+        }
+
+        $this->actingAs($manager)
+            ->get('/analytics/station-performance?station=timbang&range=30')
+            ->assertOk()
+            ->assertSee('Deteksi Anomali')
+            ->assertSee('anomali');
     }
 
     public function test_station_page_contains_performance_tab_data(): void
