@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-
 /**
  * Base trait for all station log models
  */
@@ -63,6 +61,7 @@ trait StationLogTrait
     public function hasTimeDiscrepancy(): bool
     {
         $diff = $this->timestamp_server->diffInHours($this->timestamp_kirim);
+
         return $diff > 4;
     }
 

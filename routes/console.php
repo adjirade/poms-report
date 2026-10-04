@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -25,5 +26,5 @@ Schedule::command('hq:sync')
     ->name('hq-cloud-sync')
     ->withoutOverlapping()
     ->onFailure(function () {
-        \Illuminate\Support\Facades\Log::error('Scheduled HQ sync failed.');
+        Log::error('Scheduled HQ sync failed.');
     });

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\ValidationRule;
+use Illuminate\Http\Request;
 
 class ValidationRuleController extends Controller
 {
@@ -13,7 +13,7 @@ class ValidationRuleController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         $rules = ValidationRule::where('plant_id', $user->plant_id)
             ->orderBy('station_name')
             ->orderBy('parameter_name')
@@ -34,9 +34,9 @@ class ValidationRuleController extends Controller
         ]);
 
         $rule = ValidationRule::findOrFail($id);
-        
+
         // Check if user has permission to edit this plant's rules
-        if ($rule->plant_id !== auth()->user()->plant_id && !auth()->user()->hasRole('developer')) {
+        if ($rule->plant_id !== auth()->user()->plant_id && ! auth()->user()->hasRole('developer')) {
             abort(403, 'Unauthorized to edit this validation rule.');
         }
 

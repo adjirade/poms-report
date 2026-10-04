@@ -13,6 +13,10 @@ return [
     |
     */
 
+    // Identitas perusahaan untuk kop surat dokumen PDF (laporan/export).
+    'company_name' => env('COMPANY_NAME', 'PT Sawit Sejahtera Abadi'),
+    'company_address' => env('COMPANY_ADDRESS', ''),
+
     // Kode unik pabrik ini (spoke). Contoh: PKS_01, PKS_02, dst.
     'plant_id' => env('PLANT_ID', 'PKS_01'),
 
@@ -33,6 +37,12 @@ return [
     // JANGAN aktifkan di produksi.
     'seed_demo' => env('POMS_SEED_DEMO', false),
 
-    // Password bersama semua akun demo DemoDataSeeder (bukan akun bootstrap).
-    'demo_password' => env('POMS_DEMO_PASSWORD', 'demo12345'),
+    // Password akun demo DemoDataSeeder. Kosong (default) = setiap user demo
+    // mendapat password acak UNIK yang dicetak/ditulis sekali saat seeding.
+    // Diisi = semua user demo memakai password yang sama (mis. QA/testing).
+    'demo_password' => env('POMS_DEMO_PASSWORD', ''),
+
+    // Chat ID Telegram penerima alert operasional (sync gagal, backup gagal,
+    // dsb). Kosong = alert hanya masuk ke file log.
+    'alert_telegram_chat_id' => env('POMS_ALERT_TELEGRAM_CHAT_ID', ''),
 ];

@@ -2,11 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\StationLogsExport;
+use App\Models\LogLab;
+use App\Models\LogPress;
+use App\Models\LogSterilizer;
+use App\Models\LogTimbang;
+use App\Services\StationAnalyticsService;
 use App\Services\ValidationService;
+use App\Support\StationChartConfig;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\StationLogsExport;
 
 class ExportController extends Controller
 {
@@ -50,9 +57,82 @@ class ExportController extends Controller
             'plant' => $user->plant_id,
             'preparedBy' => $user->name,
             'columns' => $this->stationColumns($station),
-        ]);
+        ])
+            ->setPaper(config('export.paper_size', env('EXPORT_PAPER_SIZE', 'a4')), env('EXPORT_PAPER_ORIENTATION', 'portrait'))
+            ->setOption(['isPhpEnabled' => true, 'defaultFont' => 'Arial']);
 
         $filename = "{$station}_{$dateFrom}_to_{$dateTo}.pdf";
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Laporan Performa Stasiun (PDF): ringkasan status, grafik tren harian
+     * (di-render Chart.js di browser lalu dikirim sebagai PNG base64),
+     * perbandingan harian, dan rekapitulasi per hari.
+     */
+    public function stationPerformancePdf(Request $request, StationAnalyticsService $analytics)
+    {
+        $validated = $request->validate([
+            'station' => ['required', 'string'],
+            'range' => ['required', 'integer'],
+            // Gambar chart dari canvas browser (data URI PNG base64).
+            'chart_image' => ['nullable', 'string', 'max:4000000'],
+        ]);
+
+        $station = $validated['station'];
+        if (! StationChartConfig::exists($station)) {
+            abort(404);
+        }
+
+        $range = (int) $validated['range'];
+        if (! in_array($range, StationChartConfig::RANGES, true)) {
+            $range = 7;
+        }
+
+        $user = auth()->user();
+        $from = now()->subDays($range - 1)->startOfDay();
+        $until = now()->endOfDay();
+
+        $chart = $analytics->dailySeries($user->plant_id, $station, $from, $until);
+        $status = $analytics->statusBreakdown($user->plant_id, $station, $from, $until);
+        $comparison = $analytics->dayComparison($user->plant_id, $station);
+
+        // Baris rekap harian untuk tabel PDF (paramter + volume + flag).
+        $dailyRows = [];
+        foreach ($chart['labels'] as $i => $label) {
+            $row = ['label' => $label, 'total' => $chart['counts']['total'][$i], 'flagged' => $chart['counts']['flagged'][$i]];
+            foreach ($chart['series'] as $s) {
+                $val = $s['data'][$i];
+                $row[$s['key']] = $val === null ? '—' : number_format($val, 2);
+            }
+            $dailyRows[] = $row;
+        }
+
+        // Gambar chart opsional: hanya data URI PNG yang diterima (bukan path/URL).
+        $chartImage = $validated['chart_image'] ?? null;
+        if ($chartImage !== null && ! str_starts_with($chartImage, 'data:image/png;base64,')) {
+            $chartImage = null;
+        }
+
+        $pdf = Pdf::loadView('exports.station-performance-pdf', [
+            'station' => $station,
+            'stationTitle' => StationChartConfig::title($station),
+            'plant' => $user->plant_id,
+            'preparedBy' => $user->name,
+            'from' => Carbon::parse($from),
+            'until' => Carbon::parse($until),
+            'range' => $range,
+            'status' => $status,
+            'comparison' => $comparison,
+            'seriesConfig' => StationChartConfig::series($station),
+            'dailyRows' => $dailyRows,
+            'chartImage' => $chartImage,
+        ])
+            ->setPaper(config('export.paper_size', env('EXPORT_PAPER_SIZE', 'a4')), 'portrait')
+            ->setOption(['isPhpEnabled' => true, 'defaultFont' => 'Arial']);
+
+        $filename = "performa_{$station}_{$from->format('Ymd')}_to_{$until->format('Ymd')}.pdf";
 
         return $pdf->download($filename);
     }
@@ -99,7 +179,7 @@ class ExportController extends Controller
 
         // Aggregate data from all stations
         $data = [
-            'timbang' => \App\Models\LogTimbang::where('plant_id', $user->plant_id)
+            'timbang' => LogTimbang::where('plant_id', $user->plant_id)
                 ->whereDate('timestamp_kirim', $date)
                 ->selectRaw('
                     COUNT(*) as total_entries,
@@ -109,7 +189,7 @@ class ExportController extends Controller
                 ')
                 ->first(),
 
-            'sterilizer' => \App\Models\LogSterilizer::where('plant_id', $user->plant_id)
+            'sterilizer' => LogSterilizer::where('plant_id', $user->plant_id)
                 ->whereDate('timestamp_kirim', $date)
                 ->selectRaw('
                     COUNT(*) as total_entries,
@@ -119,7 +199,7 @@ class ExportController extends Controller
                 ')
                 ->first(),
 
-            'press' => \App\Models\LogPress::where('plant_id', $user->plant_id)
+            'press' => LogPress::where('plant_id', $user->plant_id)
                 ->whereDate('timestamp_kirim', $date)
                 ->selectRaw('
                     COUNT(*) as total_entries,
@@ -128,7 +208,7 @@ class ExportController extends Controller
                 ')
                 ->first(),
 
-            'lab' => \App\Models\LogLab::where('plant_id', $user->plant_id)
+            'lab' => LogLab::where('plant_id', $user->plant_id)
                 ->whereDate('timestamp_kirim', $date)
                 ->selectRaw('
                     AVG(kadar_alb_cpo) as avg_ffa,
@@ -143,67 +223,23 @@ class ExportController extends Controller
             'date' => $date,
             'plant' => $user->plant_id,
             'preparedBy' => $user->name,
-        ]);
+        ])
+            ->setPaper(config('export.paper_size', env('EXPORT_PAPER_SIZE', 'a4')), 'portrait')
+            ->setOption(['isPhpEnabled' => true, 'defaultFont' => 'Arial']);
 
         $filename = "daily_report_{$user->plant_id}_{$date}.pdf";
 
-        return $pdf->setPaper('a4', 'portrait')->download($filename);
+        return $pdf->download($filename);
     }
 
     /**
-     * Column labels per station used by the PDF export.
+     * Kolom tabel PDF per stasiun — sumber kebenaran tunggal dari
+     * StationChartConfig (label + key + satuan), konsisten dengan chart.
+     *
+     * @return array<int, array{key: string, label: string, unit?: string}>
      */
     protected function stationColumns(string $station): array
     {
-        return match($station) {
-            'timbang' => [
-                'No SPB' => 'no_spb',
-                'Tonase Bruto (kg)' => 'tonase_bruto',
-                'Tonase Tarra (kg)' => 'tonase_tarra',
-                'Potongan (%)' => 'potongan_persen',
-            ],
-            'sortasi' => [
-                'No SPB' => 'no_spb',
-                'Buah Mentah (%)' => 'buah_mentah_persen',
-                'Buah Matang (%)' => 'buah_matang_persen',
-                'Jankos (%)' => 'jankos_persen',
-                'Tangkai Panjang (%)' => 'tangkai_panjang_persen',
-            ],
-            'sterilizer' => [
-                'No Rebusan' => 'no_rebusan',
-                'Tekanan (Bar)' => 'tekanan_bar',
-                'Suhu (°C)' => 'suhu_celcius',
-                'Durasi (Menit)' => 'durasi_menit',
-            ],
-            'press' => [
-                'No Press' => 'no_press',
-                'Tekanan Hidrolik (Kg/cm²)' => 'tekanan_hidrolik',
-                'Ampere Motor' => 'ampere_motor',
-                'Tambah Air (%)' => 'tambah_air_persen',
-            ],
-            'klarifikasi' => [
-                'No Tangki' => 'no_tangki',
-                'Suhu Tangki (°C)' => 'suhu_tangki_celcius',
-                'Level Minyak (cm)' => 'level_minyak_cm',
-                'Kadar Air (%)' => 'kadar_air_persen',
-            ],
-            'kernel' => [
-                'Suhu Silo (°C)' => 'suhu_silo_celcius',
-                'Losses Inti (%)' => 'losses_inti_persen',
-                'Kadar Kotoran (%)' => 'kadar_kotoran_persen',
-            ],
-            'lab' => [
-                'Kadar ALB CPO (%)' => 'kadar_alb_cpo',
-                'Losses Fiber (%)' => 'losses_fiber_persen',
-                'Losses Jankos (%)' => 'losses_jankos_persen',
-            ],
-            'maintenance' => [
-                'Kode Mesin' => 'kode_mesin',
-                'Jam Jalan (HM)' => 'jam_jalan_hm',
-                'Status' => 'status_kondisi',
-                'Keterangan' => 'keterangan_perbaikan',
-            ],
-            default => [],
-        };
+        return StationChartConfig::tableColumns($station);
     }
 }

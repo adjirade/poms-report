@@ -2,18 +2,25 @@
 
 namespace App\Services;
 
+use App\Models\LogKernel;
+use App\Models\LogKlarifikasi;
+use App\Models\LogLab;
+use App\Models\LogMaintenance;
+use App\Models\LogPress;
+use App\Models\LogSortasi;
+use App\Models\LogSterilizer;
+use App\Models\LogTimbang;
 use App\Models\ValidationRule;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ValidationService
 {
     /**
      * Validate station data against rules
-     * 
-     * @param string $plantId
-     * @param string $stationName
-     * @param array $parameters
+     *
      * @return array ['valid' => bool, 'errors' => array, 'flagged_params' => array]
+     *
      * @throws \Exception
      */
     public function validate(string $plantId, string $stationName, array $parameters): array
@@ -34,20 +41,34 @@ class ValidationService
 
             $rule = $rules->get($paramName);
 
-            if (!$rule) {
+            if (! $rule) {
                 $errors[] = "Parameter '{$paramName}' tidak memiliki aturan validasi untuk stasiun '{$stationName}'.";
+
                 continue;
             }
 
             // Validate based on data type
             if ($rule->data_type === 'enum') {
                 $allowedValues = explode(',', $rule->allowed_values);
-                if (!in_array($value, $allowedValues)) {
+                if (! in_array($value, $allowedValues)) {
                     $errors[] = $rule->getErrorMessage($value);
                     $flaggedParams[] = $paramName;
                 }
+            } elseif ($rule->data_type === 'string') {
+                // Teks bebas (mis. no_spb, kode_mesin, keterangan_perbaikan).
+                // Tidak ada rentang/enum yang bisa dicek; kewajiban mengisi
+                // (required) ditegakkan di lapisan form/parser per perintah.
+                continue;
             } else {
-                // Numeric validation
+                // Numeric validation — tolak nilai non-numeric secara eksplisit
+                // agar tidak ter-cast diam-diam menjadi 0.0 dan lolos range check.
+                if (! is_numeric($value)) {
+                    $errors[] = "Parameter '{$paramName}' harus berupa angka (diterima: '{$value}').";
+                    $flaggedParams[] = $paramName;
+
+                    continue;
+                }
+
                 $numericValue = (float) $value;
                 if ($numericValue < $rule->min_value || $numericValue > $rule->max_value) {
                     $errors[] = $rule->getErrorMessage($value);
@@ -65,25 +86,23 @@ class ValidationService
 
     /**
      * Check time discrepancy for anti-fraud detection
-     * 
-     * @param \Carbon\Carbon $timestampKirim
-     * @param \Carbon\Carbon $timestampServer
+     *
+     * @param  Carbon  $timestampKirim
+     * @param  Carbon  $timestampServer
      * @return bool True if discrepancy > 4 hours
      */
     public function checkTimeDiscrepancy($timestampKirim, $timestampServer): bool
     {
         $diff = abs($timestampServer->diffInHours($timestampKirim));
+
         return $diff > 4;
     }
 
     /**
      * Validate and prepare data for database insertion
      * Includes double timestamping and flagging logic
-     * 
-     * @param string $plantId
-     * @param string $stationName
-     * @param array $data
-     * @param \Carbon\Carbon $messageDate Telegram message.date
+     *
+     * @param  Carbon  $messageDate  Telegram message.date
      * @return array ['success' => bool, 'data' => array|null, 'errors' => array]
      */
     public function validateAndPrepare(string $plantId, string $stationName, array $data, $messageDate): array
@@ -91,7 +110,7 @@ class ValidationService
         // Validate parameters
         $validation = $this->validate($plantId, $stationName, $data);
 
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             return [
                 'success' => false,
                 'data' => null,
@@ -120,25 +139,25 @@ class ValidationService
 
     /**
      * Get station model class based on station name
-     * 
-     * @param string $stationName
+     *
      * @return string Model class name
+     *
      * @throws \Exception
      */
     public function getStationModel(string $stationName): string
     {
         $modelMap = [
-            'timbang' => \App\Models\LogTimbang::class,
-            'sortasi' => \App\Models\LogSortasi::class,
-            'sterilizer' => \App\Models\LogSterilizer::class,
-            'press' => \App\Models\LogPress::class,
-            'klarifikasi' => \App\Models\LogKlarifikasi::class,
-            'kernel' => \App\Models\LogKernel::class,
-            'lab' => \App\Models\LogLab::class,
-            'maintenance' => \App\Models\LogMaintenance::class,
+            'timbang' => LogTimbang::class,
+            'sortasi' => LogSortasi::class,
+            'sterilizer' => LogSterilizer::class,
+            'press' => LogPress::class,
+            'klarifikasi' => LogKlarifikasi::class,
+            'kernel' => LogKernel::class,
+            'lab' => LogLab::class,
+            'maintenance' => LogMaintenance::class,
         ];
 
-        if (!isset($modelMap[$stationName])) {
+        if (! isset($modelMap[$stationName])) {
             throw new \Exception("Stasiun '{$stationName}' tidak dikenal.");
         }
 
@@ -147,16 +166,16 @@ class ValidationService
 
     /**
      * Save station data with transaction
-     * 
-     * @param string $stationName
-     * @param array $data
+     *
      * @return mixed
+     *
      * @throws \Exception
      */
     public function saveStationData(string $stationName, array $data)
     {
         return DB::transaction(function () use ($stationName, $data) {
             $modelClass = $this->getStationModel($stationName);
+
             return $modelClass::create($data);
         });
     }

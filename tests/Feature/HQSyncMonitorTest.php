@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SyncPlantDataToHQ;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -79,6 +80,6 @@ class HQSyncMonitorTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('success');
 
-        Queue::assertPushed(\App\Jobs\SyncPlantDataToHQ::class);
+        Queue::assertPushed(SyncPlantDataToHQ::class);
     }
 }

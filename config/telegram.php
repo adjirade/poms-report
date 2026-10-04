@@ -65,4 +65,36 @@ return [
         'message',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Webhook (mode produksi — alternatif dari telegram:poll)
+    |--------------------------------------------------------------------------
+    |
+    | TELEGRAM_WEBHOOK_URL  : URL publik HTTPS, mis. https://poms.example.com/api/telegram/webhook.
+    | TELEGRAM_WEBHOOK_SECRET: secret acak (>= 1-32 char) yang dikirim Telegram pada
+    |                          header X-Telegram-Bot-Api-Secret-Token; divalidasi route.
+    |
+    | Kelola via: php artisan telegram:webhook --set | --remove
+    |
+    */
+
+    'webhook' => [
+        'url' => env('TELEGRAM_WEBHOOK_URL'),
+        'secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notifications (event -> Telegram)
+    |--------------------------------------------------------------------------
+    |
+    | Saklar global untuk notifikasi event (flagged/verifikasi). Per-user
+    | opt-out tersimpan di kolom users.telegram_notif_*.
+    |
+    */
+
+    'notifications' => [
+        'enabled' => env('TELEGRAM_NOTIF_ENABLED', true),
+    ],
+
 ];

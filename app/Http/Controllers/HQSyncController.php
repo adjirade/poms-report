@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Endpoint penerimaan data dari server pabrik (spoke) ke Cloud HQ (hub).
@@ -65,6 +66,7 @@ class HQSyncController extends Controller
 
                 if ($sourceId === null) {
                     $errors[$index] = 'Missing record id.';
+
                     continue;
                 }
 
@@ -75,6 +77,7 @@ class HQSyncController extends Controller
 
                 if ($exists) {
                     $duplicates++;
+
                     continue;
                 }
 
@@ -124,7 +127,7 @@ class HQSyncController extends Controller
         $attributes = [];
 
         foreach ($fillable as $field) {
-            if (array_key_exists($field, $record) && !array_key_exists($field, $overrides)) {
+            if (array_key_exists($field, $record) && ! array_key_exists($field, $overrides)) {
                 $attributes[$field] = $record[$field];
             }
         }
@@ -140,11 +143,11 @@ class HQSyncController extends Controller
     protected function getOrCreatePlantSyncUser(string $plantId): User
     {
         return User::firstOrCreate(
-            ['phone_number' => 'hq-sync-' . strtolower($plantId)],
+            ['phone_number' => 'hq-sync-'.strtolower($plantId)],
             [
-                'name' => 'HQ Sync System (' . $plantId . ')',
+                'name' => 'HQ Sync System ('.$plantId.')',
                 'telegram_user_id' => null,
-                'password' => \Illuminate\Support\Str::random(32),
+                'password' => Str::random(32),
                 'role' => 'developer',
                 'department' => null,
                 'plant_id' => $plantId,

@@ -28,7 +28,7 @@ class SyncPlantDataToHQ implements ShouldQueue
 
     public function handle(HQSyncService $service): void
     {
-        if (!config('hq.enabled')) {
+        if (! config('hq.enabled')) {
             Log::info('HQ sync skipped (disabled).');
 
             return;

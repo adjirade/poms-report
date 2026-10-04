@@ -16,11 +16,13 @@ class ValidationRulesSeeder extends Seeder
 
         $rules = [
             // A. Stasiun Timbang (Weightbridge)
+            ['station' => 'timbang', 'parameter' => 'no_spb', 'min' => 0, 'max' => 0, 'type' => 'string'],
             ['station' => 'timbang', 'parameter' => 'tonase_bruto', 'min' => 5000, 'max' => 45000, 'type' => 'numeric'],
             ['station' => 'timbang', 'parameter' => 'tonase_tarra', 'min' => 3000, 'max' => 15000, 'type' => 'numeric'],
             ['station' => 'timbang', 'parameter' => 'potongan_persen', 'min' => 1.0, 'max' => 10.0, 'type' => 'numeric'],
 
             // B. Stasiun Sortasi (Grading Ramp)
+            ['station' => 'sortasi', 'parameter' => 'no_spb', 'min' => 0, 'max' => 0, 'type' => 'string'],
             ['station' => 'sortasi', 'parameter' => 'buah_mentah_persen', 'min' => 0.0, 'max' => 15.0, 'type' => 'numeric'],
             ['station' => 'sortasi', 'parameter' => 'buah_matang_persen', 'min' => 70.0, 'max' => 100.0, 'type' => 'numeric'],
             ['station' => 'sortasi', 'parameter' => 'jankos_persen', 'min' => 0.0, 'max' => 5.0, 'type' => 'numeric'],
@@ -55,7 +57,10 @@ class ValidationRulesSeeder extends Seeder
             ['station' => 'lab', 'parameter' => 'losses_jankos_persen', 'min' => 0.1, 'max' => 1.0, 'type' => 'numeric'],
 
             // H. Stasiun Maintenance (Workshop)
+            ['station' => 'maintenance', 'parameter' => 'kode_mesin', 'min' => 0, 'max' => 0, 'type' => 'string'],
+            ['station' => 'maintenance', 'parameter' => 'jam_jalan_hm', 'min' => 0, 'max' => 999999, 'type' => 'numeric'],
             ['station' => 'maintenance', 'parameter' => 'status_kondisi', 'min' => 0, 'max' => 0, 'type' => 'enum', 'allowed' => 'normal,breakdown,maintenance'],
+            ['station' => 'maintenance', 'parameter' => 'keterangan_perbaikan', 'min' => 0, 'max' => 0, 'type' => 'string'],
         ];
 
         // Insert rules for each plant (idempotent: safe to re-run)
@@ -79,6 +84,6 @@ class ValidationRulesSeeder extends Seeder
             }
         }
 
-        $this->command->info('✓ ' . (count($plantIds) * count($rules)) . ' validation rules seeded.');
+        $this->command->info('✓ '.(count($plantIds) * count($rules)).' validation rules seeded.');
     }
 }

@@ -24,21 +24,27 @@
  * =============================================================================
  */
 
+use App\Models\LogLab;
+use App\Models\LogMaintenance;
+use App\Models\LogTimbang;
+use App\Models\User;
 use App\Services\HQSyncService;
-use App\Models\{LogTimbang, LogLab, LogMaintenance, User};
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Http;
 
 $ROOT = dirname(__DIR__);
 
 // ---------------------------------------------------------------------------
 // 0. Boot aplikasi PABRIK (spoke) memakai database sqlite terpisah
 // ---------------------------------------------------------------------------
-$plantDb = $ROOT . '/storage/sim/plant.sqlite';
+$plantDb = $ROOT.'/storage/sim/plant.sqlite';
 
 putenv('APP_ENV=testing');
-putenv('APP_KEY=base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10=');
+// APP_KEY simulasi: dari env bila di-set, selain itu digenerate acak per run
+// (jangan pernah hardcode key di repo).
+putenv('APP_KEY='.($_ENV['APP_KEY'] ?? 'base64:'.base64_encode(random_bytes(32))));
 putenv('DB_CONNECTION=sqlite');
-putenv('DB_DATABASE=' . $plantDb);
+putenv('DB_DATABASE='.$plantDb);
 putenv('CACHE_STORE=array');
 putenv('SESSION_DRIVER=array');
 putenv('QUEUE_CONNECTION=sync');
@@ -46,9 +52,9 @@ putenv('HQ_SYNC_ENABLED=true');
 putenv('HQ_API_URL=http://127.0.0.1:8199/api/hq');
 putenv('HQ_API_TOKEN=e2e-shared-token');
 
-require $ROOT . '/vendor/autoload.php';
+require $ROOT.'/vendor/autoload.php';
 
-$app = require $ROOT . '/bootstrap/app.php';
+$app = require $ROOT.'/bootstrap/app.php';
 $kernel = $app->make(ConsoleKernel::class);
 $kernel->bootstrap();
 
@@ -71,8 +77,8 @@ config([
 // ---------------------------------------------------------------------------
 // 1. Jalankan SERVER HQ sebagai proses terpisah (PHP built-in web server)
 // ---------------------------------------------------------------------------
-$hqLog = $ROOT . '/storage/sim/hq-server.log';
-$hqDbPath = $ROOT . '/storage/sim/hq.sqlite';
+$hqLog = $ROOT.'/storage/sim/hq-server.log';
+$hqDbPath = $ROOT.'/storage/sim/hq.sqlite';
 @mkdir(dirname($hqLog), 0777, true);
 
 // Kunci hasil deterministik: hapus DB basi SEBELUM server start.
@@ -85,7 +91,7 @@ $hqDbPath = $ROOT . '/storage/sim/hq.sqlite';
 // kalau tidak, server baru gagal bind dan request dilayani proses basi.
 if (stripos(PHP_OS, 'WIN') === 0) {
     $stalePid = trim((string) shell_exec(
-        "netstat -ano | findstr \":8199\" | findstr \"LISTENING\" | awk \"{print \$NF}\"" ?: ''
+        'netstat -ano | findstr ":8199" | findstr "LISTENING" | awk "{print $NF}"' ?: ''
     ));
     $stalePid = explode(PHP_EOL, trim(preg_replace('/\s+/', "\n", $stalePid) ?: ''))[0] ?? '';
     if ($stalePid !== '' && ctype_digit($stalePid)) {
@@ -98,9 +104,9 @@ if (stripos(PHP_OS, 'WIN') === 0) {
 }
 
 $env = 'APP_ENV=testing'
-    . ' HQ_API_TOKEN=e2e-shared-token'
-    . ' APP_KEY=base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10=';
-$serverCmd = "cd \"$ROOT\" && env {$env} php -S 127.0.0.1:8199 deploy/hq-server.php > " . escapeshellarg($hqLog) . ' 2>&1';
+    .' HQ_API_TOKEN=e2e-shared-token';
+// APP_KEY tidak di-set di sini: hq-server.php menggenerate acak per run.
+$serverCmd = "cd \"$ROOT\" && env {$env} php -S 127.0.0.1:8199 deploy/hq-server.php > ".escapeshellarg($hqLog).' 2>&1';
 $serverProc = proc_open($serverCmd, [], $pipes);
 $serverPid = is_resource($serverProc) ? proc_get_status($serverProc)['pid'] : 0;
 
@@ -111,7 +117,7 @@ $serverPid = is_resource($serverProc) ? proc_get_status($serverProc)['pid'] : 0;
  * terkonfirmasi mati (menghindari hang menunggu handle stdout).
  */
 $stopServer = function () use ($serverProc, $serverPid) {
-    if (!is_resource($serverProc)) {
+    if (! is_resource($serverProc)) {
         return;
     }
 
@@ -131,13 +137,13 @@ $stopServer = function () use ($serverProc, $serverPid) {
         $status = proc_get_status($serverProc);
         $running = $status['running'];
 
-        if (!$running) {
+        if (! $running) {
             break;
         }
         usleep(100_000);
     }
 
-    if ($running && !$onWindows) {
+    if ($running && ! $onWindows) {
         proc_terminate($serverProc, 9); // SIGKILL
         usleep(200_000);
     }
@@ -221,12 +227,12 @@ $service = app(HQSyncService::class);
 $pass = 0;
 $fail = 0;
 $check = function (string $name, bool $ok, string $detail = '') use (&$pass, &$fail) {
-    echo ($ok ? '  [PASS] ' : '  [FAIL] ') . $name . ($detail !== '' ? " — {$detail}" : '') . "\n";
+    echo ($ok ? '  [PASS] ' : '  [FAIL] ').$name.($detail !== '' ? " — {$detail}" : '')."\n";
     $ok ? $pass++ : $fail++;
 };
 
 $ping = function (string $token) {
-    return \Illuminate\Support\Facades\Http::withHeaders(['X-HQ-API-TOKEN' => $token])
+    return Http::withHeaders(['X-HQ-API-TOKEN' => $token])
         ->timeout(10)
         ->get('http://127.0.0.1:8199/api/hq/ping');
 };
@@ -242,10 +248,10 @@ for ($attempt = 1; $attempt <= 10; $attempt++) {
     }
     usleep(500_000);
 }
-$check('ping dengan token benar -> 200', $resp !== null && $resp->status() === 200 && $resp->json('ok') === true, 'HTTP ' . ($resp?->status() ?? 'null'));
+$check('ping dengan token benar -> 200', $resp !== null && $resp->status() === 200 && $resp->json('ok') === true, 'HTTP '.($resp?->status() ?? 'null'));
 
 if ($resp === null || $resp->status() !== 200) {
-    echo "\nServer HQ tidak kunjung siap. Log:\n" . file_get_contents($hqLog);
+    echo "\nServer HQ tidak kunjung siap. Log:\n".file_get_contents($hqLog);
     exit(1);
 }
 
@@ -259,19 +265,20 @@ $check('pending timbang sesuai skenario (2)', $pending['timbang'] === 2, "got {$
 
 $summary = $service->pushAll('PKS_01');
 $totalPushed = $summary['pushed'];
-$check('push total = 4 record (timbang2 + lab1 + maintenance1)', $totalPushed === 4, 'pushed=' . $totalPushed . ', failed=' . $summary['failed']);
+$check('push total = 4 record (timbang2 + lab1 + maintenance1)', $totalPushed === 4, 'pushed='.$totalPushed.', failed='.$summary['failed']);
 $check('tidak ada kegagalan push', $summary['failed'] === 0);
 
 echo "\n[3] Verifikasi data di DATABASE HQ\n";
-$hqPdo = new PDO('sqlite:' . $ROOT . '/storage/sim/hq.sqlite');
+$hqPdo = new PDO('sqlite:'.$ROOT.'/storage/sim/hq.sqlite');
 $hqRow = function (string $sql, array $bind = []) use ($hqPdo) {
     $stmt = $hqPdo->prepare($sql);
     $stmt->execute($bind);
+
     return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 };
 
 $row = $hqRow('SELECT * FROM log_timbang WHERE no_spb = ?', ['SPB-E2E-001']);
-$check('record verified masuk HQ', $row !== null && (int) $row['hq_source_id'] === $verified->id, 'hq_source_id=' . ($row['hq_source_id'] ?? 'null'));
+$check('record verified masuk HQ', $row !== null && (int) $row['hq_source_id'] === $verified->id, 'hq_source_id='.($row['hq_source_id'] ?? 'null'));
 $check('nilai parameter identik', $row !== null && (float) $row['tonase_bruto'] === 25300.0 && (float) $row['potongan_persen'] === 4.5);
 $check('plant_id tersimpan benar', $row !== null && $row['plant_id'] === 'PKS_01');
 $check('operator_name terdenormalisasi', $row !== null && $row['operator_name'] === 'Operator Sim');
@@ -294,7 +301,7 @@ $check('maintenance masuk + enum & teks underscore utuh', $rowMaint !== null && 
 
 // Verifikasi akun sync sistem harus dibaca dari DB HQ (bukan Eloquent plant app)
 $sysUser = $hqRow('SELECT id, phone_number FROM users WHERE phone_number = ?', ['hq-sync-pks_01']);
-$check('user_id di HQ menunjuk akun sync sistem', $row !== null && $sysUser !== null && (int) $row['user_id'] === (int) $sysUser['id'], 'hq user_id=' . ($row['user_id'] ?? 'null') . ', sys=' . ($sysUser['id'] ?? 'null'));
+$check('user_id di HQ menunjuk akun sync sistem', $row !== null && $sysUser !== null && (int) $row['user_id'] === (int) $sysUser['id'], 'hq user_id='.($row['user_id'] ?? 'null').', sys='.($sysUser['id'] ?? 'null'));
 
 echo "\n[4] Penandaan synced di sisi PABRIK\n";
 $check('verified ditandai hq_synced_at', $verified->fresh()->hq_synced_at !== null);
@@ -302,16 +309,16 @@ $check('unverified TIDAK ditandai', $unverified->fresh()->hq_synced_at === null)
 
 echo "\n[5] Idempotensi — push ulang seluruh data\n";
 $pendingAfter = $service->pendingCounts('PKS_01');
-$check('pending menjadi 0 di semua stasiun', array_sum($pendingAfter) === 0, 'total=' . array_sum($pendingAfter));
+$check('pending menjadi 0 di semua stasiun', array_sum($pendingAfter) === 0, 'total='.array_sum($pendingAfter));
 
 $summary2 = $service->pushAll('PKS_01');
-$check('push kedua mengirim 0 record', $summary2['pushed'] === 0 && $summary2['failed'] === 0, 'pushed=' . $summary2['pushed']);
+$check('push kedua mengirim 0 record', $summary2['pushed'] === 0 && $summary2['failed'] === 0, 'pushed='.$summary2['pushed']);
 
 $check('DB HQ tetap 2 baris timbang (tanpa duplikat)', (int) $hqRow('SELECT COUNT(*) c FROM log_timbang')['c'] === 2);
 $check('DB HQ tetap 1 baris lab', (int) $hqRow('SELECT COUNT(*) c FROM log_lab')['c'] === 1);
 
 // Idempotensi sisi HQ: kirim payload sama via HTTP langsung
-$idem = \Illuminate\Support\Facades\Http::withHeaders(['X-HQ-API-TOKEN' => 'e2e-shared-token'])
+$idem = Http::withHeaders(['X-HQ-API-TOKEN' => 'e2e-shared-token'])
     ->timeout(10)
     ->post('http://127.0.0.1:8199/api/hq/sync', [
         'plant_id' => 'PKS_01',
@@ -319,12 +326,12 @@ $idem = \Illuminate\Support\Facades\Http::withHeaders(['X-HQ-API-TOKEN' => 'e2e-
         'synced_at' => now()->toIso8601String(),
         'records' => [array_merge($verified->fresh()->toArray(), ['user_name' => 'Operator Sim', 'id' => $verified->id])],
     ]);
-$check('re-post payload sama -> duplicates terdeteksi', $idem->status() === 201 && $idem->json('received') === 0 && $idem->json('duplicates') === 1, 'received=' . $idem->json('received') . ', dup=' . $idem->json('duplicates'));
+$check('re-post payload sama -> duplicates terdeteksi', $idem->status() === 201 && $idem->json('received') === 0 && $idem->json('duplicates') === 1, 'received='.$idem->json('received').', dup='.$idem->json('duplicates'));
 
 $check('DB HQ tetap 2 baris timbang setelah re-post', (int) $hqRow('SELECT COUNT(*) c FROM log_timbang')['c'] === 2);
 
 echo "\n[6] Isolasi antar plant di sisi HQ\n";
-$other = \Illuminate\Support\Facades\Http::withHeaders(['X-HQ-API-TOKEN' => 'e2e-shared-token'])
+$other = Http::withHeaders(['X-HQ-API-TOKEN' => 'e2e-shared-token'])
     ->timeout(10)
     ->post('http://127.0.0.1:8199/api/hq/sync', [
         'plant_id' => 'PKS_02',
@@ -347,6 +354,6 @@ $exitCode = $fail === 0 ? 0 : 1;
 // Stop server dulu (baru aman menghapus file DB yang sedang terbuka).
 $stopServer();
 @unlink($plantDb);
-@unlink($ROOT . '/storage/sim/hq.sqlite');
+@unlink($ROOT.'/storage/sim/hq.sqlite');
 
 exit($exitCode);

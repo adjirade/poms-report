@@ -2,7 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\{User, ValidationRule};
+use App\Models\User;
+use App\Models\ValidationRule;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
@@ -70,7 +71,7 @@ abstract class BaseStationLogFactory extends Factory
             $log->is_flagged = false;
         }
 
-        $isVerified = !$isFlagged && random_int(1, 100) <= $this->verifiedRate;
+        $isVerified = ! $isFlagged && random_int(1, 100) <= $this->verifiedRate;
         $log->is_verified = $isVerified;
         $log->verified_by = $isVerified ? $this->pickVerifierId() : null;
 
@@ -109,8 +110,8 @@ abstract class BaseStationLogFactory extends Factory
     {
         static $cache = [];
 
-        $key = $station . '.' . $parameter;
-        if (!isset($cache[$key])) {
+        $key = $station.'.'.$parameter;
+        if (! isset($cache[$key])) {
             $rule = ValidationRule::query()
                 ->where('station_name', $station)
                 ->where('parameter_name', $parameter)

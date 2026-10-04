@@ -5,100 +5,79 @@
     <title>Laporan Produksi Harian - {{ $plant }}</title>
     <style>
         @page {
-            margin: 2cm;
+            margin: 1.6cm 1.4cm 2.1cm 1.4cm;
         }
         body {
             font-family: Arial, sans-serif;
-            font-size: 11pt;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-        }
-        .header h1 {
-            margin: 5px 0;
-            font-size: 16pt;
-        }
-        .header p {
-            margin: 3px 0;
             font-size: 10pt;
+            color: #111827;
         }
         .info-grid {
             display: table;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            background-color: #f0f5ec;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
         }
         .info-row {
             display: table-row;
         }
         .info-label {
             display: table-cell;
-            width: 30%;
-            padding: 5px;
+            width: 24%;
+            padding: 6px 8px;
             font-weight: bold;
+            font-size: 9pt;
         }
         .info-value {
             display: table-cell;
-            padding: 5px;
+            padding: 6px 8px;
+            font-size: 9pt;
         }
-        .section {
-            margin-bottom: 25px;
-        }
-        .section h2 {
-            background-color: #2d5016;
-            color: white;
-            padding: 8px;
-            font-size: 12pt;
-            margin-bottom: 10px;
+        .section-title {
+            font-size: 10.5pt;
+            font-weight: bold;
+            color: #14532d;
+            border-left: 4px solid #14532d;
+            padding-left: 8px;
+            margin: 18px 0 8px 0;
+            page-break-after: avoid;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         table th, table td {
-            border: 1px solid #333;
-            padding: 8px;
+            border: 1px solid #9ca3af;
+            padding: 6px 8px;
             text-align: left;
+            font-size: 9pt;
         }
         table th {
-            background-color: #f0f0f0;
+            background-color: #14532d;
+            color: #ffffff;
             font-weight: bold;
         }
-        .signatures {
-            margin-top: 50px;
-            display: table;
-            width: 100%;
+        table tbody tr:nth-child(even) td {
+            background-color: #f0f5ec;
         }
-        .signature-box {
-            display: table-cell;
-            width: 33%;
-            text-align: center;
-            padding: 10px;
+        .status-ok {
+            color: #047857;
+            font-weight: bold;
         }
-        .signature-line {
-            margin-top: 60px;
-            border-top: 1px solid #000;
-            padding-top: 5px;
-        }
-        .footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 9pt;
-            color: #666;
+        .status-high {
+            color: #b91c1c;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>LAPORAN PRODUKSI HARIAN</h1>
-        <p>Pabrik Kelapa Sawit {{ $plant }}</p>
-        <p>Tanggal: {{ \Carbon\Carbon::parse($date)->format('d F Y') }}</p>
-    </div>
+    @include('exports.partials.kop', [
+        'docTitle' => 'Laporan Produksi Harian',
+        'docSubtitle' => 'Rekapitulasi operasional seluruh stasiun utama',
+    ])
 
     <div class="info-grid">
         <div class="info-row">
@@ -106,19 +85,25 @@
             <div class="info-value">{{ $preparedBy }}</div>
         </div>
         <div class="info-row">
+            <div class="info-label">Tanggal Laporan:</div>
+            <div class="info-value">{{ \Carbon\Carbon::parse($date)->translatedFormat('d F Y') }}</div>
+        </div>
+        <div class="info-row">
             <div class="info-label">Waktu Cetak:</div>
-            <div class="info-value">{{ now()->format('d/m/Y H:i:s') }}</div>
+            <div class="info-value">{{ now()->format('d/m/Y H:i:s') }} WIB</div>
         </div>
     </div>
 
-    <div class="section">
-        <h2>1. PENERIMAAN BUAH (WEIGHTBRIDGE)</h2>
-        <table>
+    <div class="section-title">1. PENERIMAAN BUAH (WEIGHTBRIDGE)</div>
+    <table>
+        <thead>
             <tr>
                 <th>Parameter</th>
-                <th>Nilai</th>
-                <th>Satuan</th>
+                <th style="width: 30%;">Nilai</th>
+                <th style="width: 20%;">Satuan</th>
             </tr>
+        </thead>
+        <tbody>
             <tr>
                 <td>Total Kiriman</td>
                 <td>{{ number_format($data['timbang']->total_entries ?? 0) }}</td>
@@ -139,17 +124,19 @@
                 <td>{{ number_format($data['timbang']->avg_potongan ?? 0, 2) }}</td>
                 <td>%</td>
             </tr>
-        </table>
-    </div>
+        </tbody>
+    </table>
 
-    <div class="section">
-        <h2>2. STERILIZER (PEREBUSAN)</h2>
-        <table>
+    <div class="section-title">2. STERILIZER (PEREBUSAN)</div>
+    <table>
+        <thead>
             <tr>
                 <th>Parameter</th>
-                <th>Rata-rata</th>
-                <th>Satuan</th>
+                <th style="width: 30%;">Rata-rata</th>
+                <th style="width: 20%;">Satuan</th>
             </tr>
+        </thead>
+        <tbody>
             <tr>
                 <td>Jumlah Rebusan</td>
                 <td>{{ number_format($data['sterilizer']->total_entries ?? 0) }}</td>
@@ -170,17 +157,19 @@
                 <td>{{ number_format($data['sterilizer']->avg_durasi ?? 0, 1) }}</td>
                 <td>Menit</td>
             </tr>
-        </table>
-    </div>
+        </tbody>
+    </table>
 
-    <div class="section">
-        <h2>3. SCREW PRESS (PENGEPRESAN)</h2>
-        <table>
+    <div class="section-title">3. SCREW PRESS (PENGEPRESAN)</div>
+    <table>
+        <thead>
             <tr>
                 <th>Parameter</th>
-                <th>Rata-rata</th>
-                <th>Satuan</th>
+                <th style="width: 30%;">Rata-rata</th>
+                <th style="width: 20%;">Satuan</th>
             </tr>
+        </thead>
+        <tbody>
             <tr>
                 <td>Jumlah Operasi Press</td>
                 <td>{{ number_format($data['press']->total_entries ?? 0) }}</td>
@@ -196,23 +185,25 @@
                 <td>{{ number_format($data['press']->avg_ampere ?? 0, 2) }}</td>
                 <td>A</td>
             </tr>
-        </table>
-    </div>
+        </tbody>
+    </table>
 
-    <div class="section">
-        <h2>4. LABORATORIUM (QC & LOSSES)</h2>
-        <table>
+    <div class="section-title">4. LABORATORIUM (QC &amp; LOSSES)</div>
+    <table>
+        <thead>
             <tr>
                 <th>Parameter</th>
-                <th>Rata-rata</th>
-                <th>Satuan</th>
-                <th>Status</th>
+                <th style="width: 24%;">Rata-rata</th>
+                <th style="width: 16%;">Satuan</th>
+                <th style="width: 24%;">Status</th>
             </tr>
+        </thead>
+        <tbody>
             <tr>
                 <td>Kadar ALB (FFA) CPO</td>
                 <td>{{ number_format($data['lab']->avg_ffa ?? 0, 2) }}</td>
                 <td>%</td>
-                <td style="color: {{ ($data['lab']->avg_ffa ?? 0) > 5 ? 'red' : 'green' }}">
+                <td class="{{ ($data['lab']->avg_ffa ?? 0) > 5 ? 'status-high' : 'status-ok' }}">
                     {{ ($data['lab']->avg_ffa ?? 0) > 5 ? '⚠ Tinggi' : '✓ Normal' }}
                 </td>
             </tr>
@@ -220,7 +211,7 @@
                 <td>Losses Fiber</td>
                 <td>{{ number_format($data['lab']->avg_losses_fiber ?? 0, 2) }}</td>
                 <td>%</td>
-                <td style="color: {{ ($data['lab']->avg_losses_fiber ?? 0) > 5 ? 'red' : 'green' }}">
+                <td class="{{ ($data['lab']->avg_losses_fiber ?? 0) > 5 ? 'status-high' : 'status-ok' }}">
                     {{ ($data['lab']->avg_losses_fiber ?? 0) > 5 ? '⚠ Tinggi' : '✓ Normal' }}
                 </td>
             </tr>
@@ -228,39 +219,20 @@
                 <td>Losses Jankos</td>
                 <td>{{ number_format($data['lab']->avg_losses_jankos ?? 0, 2) }}</td>
                 <td>%</td>
-                <td style="color: {{ ($data['lab']->avg_losses_jankos ?? 0) > 1 ? 'red' : 'green' }}">
+                <td class="{{ ($data['lab']->avg_losses_jankos ?? 0) > 1 ? 'status-high' : 'status-ok' }}">
                     {{ ($data['lab']->avg_losses_jankos ?? 0) > 1 ? '⚠ Tinggi' : '✓ Normal' }}
                 </td>
             </tr>
-        </table>
-    </div>
+        </tbody>
+    </table>
 
-    <div class="signatures">
-        <div class="signature-box">
-            <div>Dibuat Oleh,</div>
-            <div class="signature-line">
-                <strong>{{ $preparedBy }}</strong><br>
-                Operator Shift
-            </div>
-        </div>
-        <div class="signature-box">
-            <div>Diperiksa Oleh,</div>
-            <div class="signature-line">
-                (........................)<br>
-                Asisten Proses
-            </div>
-        </div>
-        <div class="signature-box">
-            <div>Disetujui Oleh,</div>
-            <div class="signature-line">
-                (........................)<br>
-                Manager Pabrik
-            </div>
-        </div>
-    </div>
+    @include('exports.partials.signatures', [
+        'createdBy' => $preparedBy,
+        'createdRole' => 'Operator Shift',
+        'checkedRole' => 'Asisten Proses',
+        'approvedRole' => 'Manager Pabrik',
+    ])
 
-    <div class="footer">
-        <p>Dokumen ini dicetak secara otomatis dari sistem POMS Report - {{ now()->format('d/m/Y H:i') }}</p>
-    </div>
+    @include('exports.partials.footer')
 </body>
 </html>

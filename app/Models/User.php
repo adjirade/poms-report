@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Support\StationLogDepartmentTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, StationLogDepartmentTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -19,6 +20,9 @@ class User extends Authenticatable
         'name',
         'phone_number',
         'telegram_user_id',
+        'telegram_notif_enabled',
+        'telegram_notif_flagged',
+        'telegram_notif_verified',
         'password',
         'role',
         'department',
@@ -45,7 +49,31 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'telegram_notif_enabled' => 'boolean',
+            'telegram_notif_flagged' => 'boolean',
+            'telegram_notif_verified' => 'boolean',
         ];
+    }
+
+    /**
+     * Apakah user ini ingin menerima notifikasi Telegram untuk jenis event
+     * tertentu ('flagged' | 'verified').
+     */
+    public function wantsTelegramNotification(string $event = 'flagged'): bool
+    {
+        if (config('telegram.notifications.enabled', true) === false) {
+            return false;
+        }
+
+        if (! $this->telegram_notif_enabled) {
+            return false;
+        }
+
+        return match ($event) {
+            'flagged' => (bool) $this->telegram_notif_flagged,
+            'verified' => (bool) $this->telegram_notif_verified,
+            default => true,
+        };
     }
 
     /**
@@ -102,7 +130,7 @@ class User extends Authenticatable
      */
     public function allowedStations(): ?array
     {
-        if (!$this->canAccessWeb()) {
+        if (! $this->canAccessWeb()) {
             return [];
         }
 
@@ -111,14 +139,10 @@ class User extends Authenticatable
             return null;
         }
 
-        // Asisten is limited to their department's stations
+        // Asisten is limited to their department's stations (satu sumber kebenaran:
+        // StationLogDepartmentTrait, dipakai juga oleh Livewire & Telegram job)
         if ($this->role === 'asisten') {
-            return match ($this->department) {
-                'proses' => ['timbang', 'sortasi', 'sterilizer', 'press', 'klarifikasi', 'kernel'],
-                'maintenance' => ['maintenance'],
-                'lab' => ['lab'],
-                default => [],
-            };
+            return $this->getDepartmentStations((string) $this->department);
         }
 
         return null;

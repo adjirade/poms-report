@@ -1,11 +1,14 @@
 @extends('layouts.app')
 
+@section('title', 'Aturan Validasi')
+@section('subtitle', 'Batas parameter per stasiun')
+
 @section('content')
 <div class="space-y-6">
     
     <!-- Header -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center justify-between">
+    <div class="card card-pad">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-gray-800">
                     <i class="fas fa-sliders-h mr-2"></i>
@@ -15,44 +18,44 @@
                     Kelola batas minimum dan maksimum parameter per stasiun untuk plant {{ auth()->user()->plant_id }}
                 </p>
             </div>
-            <span class="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-semibold">
-                {{ $rules->flatten()->count() }} Rules Active
+            <span class="badge self-start border-green-200/70 bg-green-100 px-4 py-1.5 text-green-800 sm:self-auto">
+                <i class="fas fa-sliders"></i>{{ $rules->flatten()->count() }} Rules Active
             </span>
         </div>
     </div>
     
     <!-- Rules by Station -->
     @foreach($rules as $stationName => $stationRules)
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="bg-green-600 text-white px-6 py-4">
-            <h3 class="text-xl font-bold">
-                <i class="fas fa-industry mr-2"></i>
-                {{ ucfirst($stationName) }}
-            </h3>
+    <div class="card overflow-hidden">
+        <div class="flex items-center gap-3 border-b border-white/50 px-6 py-4">
+            <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-float">
+                <i class="fas fa-industry"></i>
+            </span>
+            <h3 class="text-xl font-bold text-gray-800">{{ ucfirst($stationName) }}</h3>
         </div>
         
         <div class="p-6">
             <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50 border-b">
+                <table class="glass-table w-full">
+                    <thead>
                         <tr>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Parameter</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Data Type</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Min Value</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Max Value</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Enum Values</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Last Updated</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                            <th scope="col" class="px-4 py-3 text-left">Parameter</th>
+                            <th scope="col" class="px-4 py-3 text-left">Data Type</th>
+                            <th scope="col" class="px-4 py-3 text-left">Min Value</th>
+                            <th scope="col" class="px-4 py-3 text-left">Max Value</th>
+                            <th scope="col" class="px-4 py-3 text-left">Enum Values</th>
+                            <th scope="col" class="px-4 py-3 text-left">Last Updated</th>
+                            <th scope="col" class="px-4 py-3 text-left">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody class="divide-y divide-white/40">
                         @foreach($stationRules as $rule)
-                        <tr class="hover:bg-gray-50">
+                        <tr>
                             <td class="px-4 py-3 font-medium text-gray-900">
                                 {{ ucwords(str_replace('_', ' ', $rule->parameter_name)) }}
                             </td>
                             <td class="px-4 py-3 text-sm">
-                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
+                                <span class="badge border-sky-200/70 bg-sky-100 text-sky-800">
                                     {{ strtoupper($rule->data_type) }}
                                 </span>
                             </td>
@@ -74,7 +77,7 @@
                                 @if($rule->data_type === 'enum' && $rule->allowed_values)
                                     <div class="flex flex-wrap gap-1">
                                         @foreach(explode(',', $rule->allowed_values) as $val)
-                                            <span class="px-2 py-0.5 bg-gray-200 rounded text-xs">{{ trim($val) }}</span>
+                                            <span class="chip">{{ trim($val) }}</span>
                                         @endforeach
                                     </div>
                                 @else
@@ -87,7 +90,8 @@
                             <td class="px-4 py-3">
                                 @if($rule->data_type === 'numeric')
                                 <button onclick="openEditModal({{ $rule->id }}, '{{ $rule->parameter_name }}', {{ $rule->min_value }}, {{ $rule->max_value }})"
-                                        class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded">                                        <i class="fas fa-edit mr-1"></i>Edit
+                                        class="btn-primary px-3 py-1.5 text-xs">
+                                    <i class="fas fa-edit"></i>Edit
                                 </button>
                                 @else
                                 <span class="text-xs text-gray-400">Enum</span>
@@ -105,10 +109,13 @@
 </div>
 
 <!-- Edit Modal -->
-<div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div class="bg-green-600 text-white px-6 py-4 rounded-t-lg">
-            <h3 class="text-xl font-bold">Edit Validation Rule</h3>
+<div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+    <div class="glass glass-sheen w-full max-w-md overflow-hidden shadow-glass-lg">
+        <div class="flex items-center gap-3 border-b border-white/50 px-6 py-4">
+            <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-float">
+                <i class="fas fa-sliders"></i>
+            </span>
+            <h3 class="text-xl font-bold text-gray-800">Edit Validation Rule</h3>
         </div>
         
         <form id="editForm" method="POST" class="p-6 space-y-4">
@@ -116,39 +123,36 @@
             @method('PUT')
             
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Parameter Name</label>
-                <input type="text" id="paramName" readonly 
-                       class="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg">
+                <label class="mb-2 block text-sm font-semibold text-gray-700">Parameter Name</label>
+                <input type="text" id="paramName" readonly
+                       class="input bg-white/50">
             </div>
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Min Value</label>
-                    <input type="number" name="min_value" id="minValue" step="0.01" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <label class="mb-2 block text-sm font-semibold text-gray-700">Min Value</label>
+                    <input type="number" name="min_value" id="minValue" step="0.01" required class="input">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Max Value</label>
-                    <input type="number" name="max_value" id="maxValue" step="0.01" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <label class="mb-2 block text-sm font-semibold text-gray-700">Max Value</label>
+                    <input type="number" name="max_value" id="maxValue" step="0.01" required class="input">
                 </div>
             </div>
             
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p class="text-sm text-yellow-800">
+            <div class="rounded-2xl border border-amber-300/60 bg-amber-100/70 p-4 backdrop-blur-xl">
+                <p class="text-sm text-amber-900">
                     <i class="fas fa-exclamation-triangle mr-2"></i>
                     <strong>Warning:</strong> Perubahan akan langsung mempengaruhi validasi data baru yang masuk.
                 </p>
             </div>
             
-            <div class="flex items-center space-x-3">
-                <button type="submit" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold">
-                    <i class="fas fa-save mr-2"></i>Save Changes
+            <div class="flex items-center gap-3">
+                <button type="submit" class="btn-primary flex-1">
+                    <i class="fas fa-save"></i>Save Changes
                 </button>
-                <button type="button" onclick="closeEditModal()" 
-                        class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-semibold">
-                    <i class="fas fa-times mr-2"></i>Cancel
+                <button type="button" onclick="closeEditModal()" class="btn-ghost flex-1">
+                    <i class="fas fa-times"></i>Cancel
                 </button>
             </div>
         </form>

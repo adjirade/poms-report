@@ -22,12 +22,32 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Developer = superadmin: lolos SEMUA gate/ability di sistem.
+        // Mengembalikan null (bukan false) agar gate spesifik di bawah tetap
+        // dievaluasi untuk role lain.
+        Gate::before(function (User $user): ?bool {
+            return $user->role === 'developer' ? true : null;
+        });
+
+        // Manajemen user (buat/ubah/hapus/reset password). Developer penuh;
+        // role lain ditolak. SQL: satu sumber kebenaran di Query Builder gate.
+        Gate::define('manage-users', function (User $user) {
+            return $user->role === 'developer';
+        });
+
+        // Input data laporan lewat web (operator dan role lain). Operator/asisten
+        // tetap dibatasi ke stasiun departemennya di controller.
+        Gate::define('submit-data', function (User $user) {
+            return in_array($user->role, ['operator', 'asisten', 'askep', 'manager', 'developer'], true);
+        });
+
         // Operators cannot access web dashboard, developer always can
         Gate::define('access-web', function (User $user) {
             // Developer role ALWAYS has web access
             if ($user->role === 'developer') {
                 return true;
             }
+
             // Other roles: check canAccessWeb() method
             return $user->canAccessWeb();
         });

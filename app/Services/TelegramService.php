@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 class TelegramService
 {
     protected string $botToken;
+
     protected string $apiUrl;
 
     public function __construct()
@@ -18,10 +19,9 @@ class TelegramService
 
     /**
      * Get updates using long polling
-     * 
-     * @param int|null $offset Last update_id + 1
-     * @param int $timeout Timeout in seconds for long polling
-     * @return array|null
+     *
+     * @param  int|null  $offset  Last update_id + 1
+     * @param  int  $timeout  Timeout in seconds for long polling
      */
     public function getUpdates(?int $offset = null, int $timeout = 30): ?array
     {
@@ -35,6 +35,7 @@ class TelegramService
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return $data['result'] ?? [];
             }
 
@@ -48,17 +49,15 @@ class TelegramService
             Log::error('Telegram getUpdates exception', [
                 'message' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
 
     /**
      * Send message to user
-     * 
-     * @param string $chatId
-     * @param string $text
-     * @param array $options Additional options (parse_mode, reply_markup, etc.)
-     * @return bool
+     *
+     * @param  array  $options  Additional options (parse_mode, reply_markup, etc.)
      */
     public function sendMessage(string $chatId, string $text, array $options = []): bool
     {
@@ -86,17 +85,15 @@ class TelegramService
                 'chat_id' => $chatId,
                 'message' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
 
     /**
      * Send formatted message (Markdown or HTML)
-     * 
-     * @param string $chatId
-     * @param string $text
-     * @param string $parseMode 'Markdown' or 'HTML'
-     * @return bool
+     *
+     * @param  string  $parseMode  'Markdown' or 'HTML'
      */
     public function sendFormattedMessage(string $chatId, string $text, string $parseMode = 'Markdown'): bool
     {
@@ -105,18 +102,14 @@ class TelegramService
 
     /**
      * Send error message to user
-     * 
-     * @param string $chatId
-     * @param array $errors
-     * @return bool
      */
     public function sendValidationError(string $chatId, array $errors): bool
     {
         $message = "❌ *Data Ditolak!*\n\n";
         $message .= "*Kesalahan Validasi:*\n";
-        
+
         foreach ($errors as $index => $error) {
-            $message .= ($index + 1) . ". {$error}\n";
+            $message .= ($index + 1).". {$error}\n";
         }
 
         $message .= "\n_Silakan perbaiki data dan kirim ulang._";
@@ -126,47 +119,36 @@ class TelegramService
 
     /**
      * Send success confirmation
-     * 
-     * @param string $chatId
-     * @param string $stationName
-     * @param array $data
-     * @return bool
      */
     public function sendSuccessConfirmation(string $chatId, string $stationName, array $data): bool
     {
         $message = "✅ *Data Berhasil Disimpan*\n\n";
-        $message .= "*Stasiun:* " . ucfirst($stationName) . "\n";
-        $message .= "*Waktu Input:* " . now()->format('d/m/Y H:i:s') . "\n\n";
-        $message .= "_Data telah tersimpan dan menunggu verifikasi._";
+        $message .= '*Stasiun:* '.ucfirst($stationName)."\n";
+        $message .= '*Waktu Input:* '.now()->format('d/m/Y H:i:s')."\n\n";
+        $message .= '_Data telah tersimpan dan menunggu verifikasi._';
 
         return $this->sendFormattedMessage($chatId, $message, 'Markdown');
     }
 
     /**
      * Send unauthorized access message
-     * 
-     * @param string $chatId
-     * @return bool
      */
     public function sendUnauthorizedMessage(string $chatId): bool
     {
         $message = "🚫 *Akses Ditolak*\n\n";
         $message .= "Nomor Anda belum teraktifkan atau tidak terdaftar dalam sistem.\n\n";
-        $message .= "Silakan hubungi administrator untuk aktivasi akun.";
+        $message .= 'Silakan hubungi administrator untuk aktivasi akun.';
 
         return $this->sendFormattedMessage($chatId, $message, 'Markdown');
     }
 
     /**
      * Extract user info from message
-     * 
-     * @param array $message
-     * @return array
      */
     public function extractUserInfo(array $message): array
     {
         $from = $message['from'] ?? [];
-        
+
         return [
             'telegram_user_id' => (string) ($from['id'] ?? ''),
             'first_name' => $from['first_name'] ?? '',
@@ -178,9 +160,6 @@ class TelegramService
 
     /**
      * Extract message text and metadata
-     * 
-     * @param array $message
-     * @return array
      */
     public function extractMessageData(array $message): array
     {
@@ -194,8 +173,6 @@ class TelegramService
 
     /**
      * Get bot information
-     * 
-     * @return array|null
      */
     public function getMe(): ?array
     {
@@ -204,6 +181,7 @@ class TelegramService
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return $data['result'] ?? null;
             }
 
@@ -212,7 +190,66 @@ class TelegramService
             Log::error('Telegram getMe exception', [
                 'message' => $e->getMessage(),
             ]);
+
             return null;
+        }
+    }
+
+    /**
+     * Pasang webhook (mode produksi; alternatif dari long polling).
+     */
+    public function setWebhook(string $url, ?string $secretToken = null): array
+    {
+        $params = [
+            'url' => $url,
+            'allowed_updates' => ['message'],
+            'drop_pending_updates' => false,
+        ];
+
+        if ($secretToken) {
+            $params['secret_token'] = $secretToken;
+        }
+
+        return $this->callWebhookApi('setWebhook', $params);
+    }
+
+    /**
+     * Lepas webhook (kembali ke mode polling).
+     */
+    public function deleteWebhook(): array
+    {
+        return $this->callWebhookApi('deleteWebhook', ['drop_pending_updates' => false]);
+    }
+
+    /**
+     * Info webhook aktif (URL, pending updates, error terakhir).
+     */
+    public function getWebhookInfo(): array
+    {
+        return $this->callWebhookApi('getWebhookInfo', []);
+    }
+
+    /**
+     * Panggil endpoint webhook API dan kembalikan ['ok' => bool, 'result'/'description' => ...].
+     */
+    protected function callWebhookApi(string $method, array $params): array
+    {
+        try {
+            $response = Http::post("{$this->apiUrl}/{$method}", $params);
+            $body = $response->json() ?? [];
+
+            if (! $response->successful() || ($body['ok'] ?? false) !== true) {
+                Log::error("Telegram {$method} failed", [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+            }
+
+            return $body;
+        } catch (\Exception $e) {
+            Log::error("Telegram {$method} exception", ['message' => $e->getMessage()]);
+
+            return ['ok' => false, 'description' => $e->getMessage()];
         }
     }
 }

@@ -2,7 +2,15 @@
 
 namespace App\Livewire;
 
-use App\Models\{LogTimbang, LogSortasi, LogSterilizer, LogPress, LogKlarifikasi, LogKernel, LogLab, LogMaintenance};
+use App\Models\LogKernel;
+use App\Models\LogKlarifikasi;
+use App\Models\LogLab;
+use App\Models\LogMaintenance;
+use App\Models\LogPress;
+use App\Models\LogSortasi;
+use App\Models\LogSterilizer;
+use App\Models\LogTimbang;
+use App\Support\StationLogDepartmentTrait;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -10,7 +18,7 @@ use Livewire\WithPagination;
 
 class StationLogsTable extends Component
 {
-    use WithPagination;
+    use StationLogDepartmentTrait, WithPagination;
 
     public string $station;
 
@@ -56,20 +64,20 @@ class StationLogsTable extends Component
             ->orderBy('timestamp_kirim', 'desc');
 
         // Filter by plant (except HQ admin who can see all)
-        if (!Gate::allows('view-all-plants')) {
+        if (! Gate::allows('view-all-plants')) {
             $query->where('plant_id', $user->plant_id);
         }
 
         // Filter by department for asisten
         if ($user->role === 'asisten' && $user->department) {
             $departmentStations = $this->getDepartmentStations($user->department);
-            if (!in_array($this->station, $departmentStations)) {
+            if (! in_array($this->station, $departmentStations)) {
                 abort(403, 'Anda tidak memiliki akses ke stasiun ini.');
             }
         }
 
         // Apply filters
-        $query = match($this->filterType) {
+        $query = match ($this->filterType) {
             'flagged' => $query->where('is_flagged', true),
             'unverified' => $query->where('is_verified', false),
             'verified' => $query->where('is_verified', true),
@@ -78,7 +86,7 @@ class StationLogsTable extends Component
 
         // Apply search across user name and station-specific searchable columns
         if (trim($this->search) !== '') {
-            $term = '%' . trim($this->search) . '%';
+            $term = '%'.trim($this->search).'%';
             $searchableColumns = $this->getSearchableColumnsForStation();
 
             $query->where(function ($q) use ($term, $searchableColumns) {
@@ -95,7 +103,7 @@ class StationLogsTable extends Component
 
     protected function getModelClass()
     {
-        return match($this->station) {
+        return match ($this->station) {
             'timbang' => LogTimbang::class,
             'sortasi' => LogSortasi::class,
             'sterilizer' => LogSterilizer::class,
@@ -110,7 +118,7 @@ class StationLogsTable extends Component
 
     protected function getSearchableColumnsForStation(): array
     {
-        return match($this->station) {
+        return match ($this->station) {
             'timbang', 'sortasi' => ['no_spb'],
             'sterilizer' => ['no_rebusan'],
             'press' => ['no_press'],
@@ -122,7 +130,7 @@ class StationLogsTable extends Component
 
     protected function getColumnsForStation(): array
     {
-        return match($this->station) {
+        return match ($this->station) {
             'timbang' => [
                 'No SPB' => 'no_spb',
                 'Tonase Bruto (kg)' => 'tonase_bruto',
@@ -174,35 +182,39 @@ class StationLogsTable extends Component
         };
     }
 
-    protected function getDepartmentStations(string $department): array
-    {
-        return match($department) {
-            'proses' => ['timbang', 'sortasi', 'sterilizer', 'press', 'klarifikasi', 'kernel'],
-            'maintenance' => ['maintenance'],
-            'lab' => ['lab'],
-            default => [],
-        };
-    }
-
     public function verifyRecord($recordId)
     {
-        if (!Gate::allows('verify-data')) {
+        if (! Gate::allows('verify-data')) {
             session()->flash('error', 'Anda tidak memiliki izin untuk verifikasi data.');
+
             return;
+        }
+
+        $user = auth()->user();
+
+        // Asisten terbatas pada stasiun departemennya (PRD §3) — defense-in-depth;
+        // getLogs() sudah abort 403 saat render tabel stasiun lain.
+        if ($user->role === 'asisten' && $user->department) {
+            if (! in_array($this->station, $this->getDepartmentStations($user->department), true)) {
+                session()->flash('error', 'Anda hanya dapat memverifikasi data stasiun di departemen Anda.');
+
+                return;
+            }
         }
 
         $modelClass = $this->getModelClass();
         $record = $modelClass::findOrFail($recordId);
 
         // Plant isolation (developer may verify across plants)
-        $user = auth()->user();
-        if ($record->plant_id !== $user->plant_id && !$user->hasRole('developer')) {
+        if ($record->plant_id !== $user->plant_id && ! $user->hasRole('developer')) {
             session()->flash('error', 'Data milik plant lain, tidak dapat diverifikasi.');
+
             return;
         }
 
         if ($record->is_verified) {
             session()->flash('warning', 'Data sudah diverifikasi sebelumnya.');
+
             return;
         }
 

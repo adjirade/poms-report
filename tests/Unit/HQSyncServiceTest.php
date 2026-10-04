@@ -32,7 +32,7 @@ class HQSyncServiceTest extends TestCase
     {
         $user = User::create([
             'name' => 'Operator Sync Test',
-            'phone_number' => '6299' . uniqid(),
+            'phone_number' => '6299'.uniqid(),
             'password' => 'secret123',
             'role' => 'operator',
             'department' => 'proses',
@@ -43,7 +43,7 @@ class HQSyncServiceTest extends TestCase
         return LogTimbang::create(array_merge([
             'user_id' => $user->id,
             'plant_id' => 'PKS_01',
-            'no_spb' => 'SPB' . uniqid(),
+            'no_spb' => 'SPB'.uniqid(),
             'tonase_bruto' => 25000,
             'tonase_tarra' => 9000,
             'potongan_persen' => 4.5,

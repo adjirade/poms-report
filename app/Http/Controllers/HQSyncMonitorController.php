@@ -44,11 +44,11 @@ class HQSyncMonitorController extends Controller
 
     public function run(Request $request)
     {
-        if (!config('hq.enabled')) {
+        if (! config('hq.enabled')) {
             return back()->with('warning', 'HQ sync tidak aktif (HQ_SYNC_ENABLED=false di .env).');
         }
 
-        if (!config('hq.api_url') || !config('hq.api_token')) {
+        if (! config('hq.api_url') || ! config('hq.api_token')) {
             return back()->with('warning', 'HQ_API_URL / HQ_API_TOKEN belum dikonfigurasi.');
         }
 

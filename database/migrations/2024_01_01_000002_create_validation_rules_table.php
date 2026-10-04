@@ -24,7 +24,7 @@ return new class extends Migration
 
             // Unique constraint
             $table->unique(['plant_id', 'station_name', 'parameter_name'], 'unique_plant_station_param');
-            
+
             // Index for fast lookups
             $table->index(['plant_id', 'station_name']);
         });

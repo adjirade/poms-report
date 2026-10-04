@@ -2,7 +2,6 @@
 
 namespace Tests\Unit;
 
-use App\Models\ValidationRule;
 use App\Services\ValidationService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;

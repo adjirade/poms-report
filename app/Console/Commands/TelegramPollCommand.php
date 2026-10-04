@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Services\TelegramService;
 use App\Jobs\ProcessTelegramMessage;
+use App\Services\TelegramService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +27,7 @@ class TelegramPollCommand extends Command
     protected $description = 'Poll Telegram Bot API for incoming messages using Long Polling';
 
     protected TelegramService $telegram;
+
     protected ?int $lastUpdateId = null;
 
     protected const OFFSET_CACHE_KEY = 'telegram:poll:last_update_id';
@@ -50,8 +51,9 @@ class TelegramPollCommand extends Command
 
         // Test bot connection
         $botInfo = $this->telegram->getMe();
-        if (!$botInfo) {
+        if (! $botInfo) {
             $this->error('Failed to connect to Telegram Bot API. Check your bot token.');
+
             return Command::FAILURE;
         }
 
@@ -111,6 +113,7 @@ class TelegramPollCommand extends Command
 
         if ($updates === null) {
             $this->warn('Failed to fetch updates. Retrying...');
+
             return;
         }
 
@@ -119,7 +122,7 @@ class TelegramPollCommand extends Command
             return;
         }
 
-        $this->info("Received " . count($updates) . " update(s)");
+        $this->info('Received '.count($updates).' update(s)');
 
         // Process each update
         foreach ($updates as $update) {
@@ -136,24 +139,21 @@ class TelegramPollCommand extends Command
         $this->lastUpdateId = $update['update_id'];
 
         // Only process text messages
-        if (!isset($update['message']['text'])) {
+        if (! isset($update['message']['text'])) {
             return;
         }
 
         $message = $update['message'];
         $text = $message['text'];
 
-        // Only process commands (starting with /)
-        if (!str_starts_with($text, '/')) {
-            return;
-        }
-
+        // Proses SEMUA pesan teks: slash command (input data) maupun teks tombol
+        // reply-keyboard menu bot (mis. "📊 Ringkasan").
         $this->line("Processing: {$text}");
 
         // Dispatch job to queue for processing
         try {
             ProcessTelegramMessage::dispatch($message);
-            $this->info("✓ Dispatched to queue");
+            $this->info('✓ Dispatched to queue');
         } catch (\Exception $e) {
             $this->error("✗ Failed to dispatch: {$e->getMessage()}");
             Log::error('Failed to dispatch telegram message', [

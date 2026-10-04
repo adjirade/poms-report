@@ -17,7 +17,7 @@ class HQSyncCommand extends Command
     {
         $plantId = (string) config('poms.plant_id', 'PKS_01');
 
-        if (!config('hq.enabled')) {
+        if (! config('hq.enabled')) {
             $this->warn('HQ sync tidak aktif (HQ_SYNC_ENABLED=false di .env).');
 
             return Command::SUCCESS;
@@ -29,7 +29,7 @@ class HQSyncCommand extends Command
             $total = 0;
 
             foreach ($counts as $station => $count) {
-                $this->line(str_pad("  {$station}", 16) . $count);
+                $this->line(str_pad("  {$station}", 16).$count);
                 $total += $count;
             }
 
@@ -47,7 +47,7 @@ class HQSyncCommand extends Command
             $summary = $service->pushAll($plantId);
 
             foreach ($summary['stations'] as $station => $result) {
-                $this->line(str_pad("  {$station}", 16) . "pushed={$result['pushed']}, failed={$result['failed']}");
+                $this->line(str_pad("  {$station}", 16)."pushed={$result['pushed']}, failed={$result['failed']}");
             }
 
             $this->info("Selesai. Total pushed={$summary['pushed']}, failed={$summary['failed']}.");

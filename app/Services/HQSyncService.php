@@ -2,7 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\{LogTimbang, LogSortasi, LogSterilizer, LogPress, LogKlarifikasi, LogKernel, LogLab, LogMaintenance};
+use App\Models\LogKernel;
+use App\Models\LogKlarifikasi;
+use App\Models\LogLab;
+use App\Models\LogMaintenance;
+use App\Models\LogPress;
+use App\Models\LogSortasi;
+use App\Models\LogSterilizer;
+use App\Models\LogTimbang;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -56,7 +63,7 @@ class HQSyncService
             'stations' => [],
         ];
 
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             $summary['skipped_by_config'] = 1;
 
             return $summary;
@@ -82,7 +89,7 @@ class HQSyncService
     {
         $modelClass = $this->stationModels()[$station] ?? null;
 
-        if (!$modelClass) {
+        if (! $modelClass) {
             return ['pushed' => 0, 'failed' => 0, 'error' => "Unknown station: {$station}"];
         }
 
@@ -120,7 +127,6 @@ class HQSyncService
     /**
      * Kirim satu batch record ke HQ dan tandai yang sukses.
      *
-     * @param Collection $records
      * @return array{pushed: int, failed: int}
      */
     public function pushBatch(string $station, string $plantId, Collection $records): array
@@ -136,14 +142,14 @@ class HQSyncService
 
         try {
             $response = Http::withHeaders([
-                    'X-HQ-API-TOKEN' => (string) config('hq.api_token'),
-                    'Accept' => 'application/json',
-                ])
+                'X-HQ-API-TOKEN' => (string) config('hq.api_token'),
+                'Accept' => 'application/json',
+            ])
                 ->timeout((int) config('hq.timeout', 30))
-                ->post(rtrim((string) config('hq.api_url'), '/') . '/sync', $payload);
+                ->post(rtrim((string) config('hq.api_url'), '/').'/sync', $payload);
 
-            if (!$response->successful()) {
-                $this->failLog($logId, "HTTP {$response->status()}: " . mb_substr($response->body(), 0, 500));
+            if (! $response->successful()) {
+                $this->failLog($logId, "HTTP {$response->status()}: ".mb_substr($response->body(), 0, 500));
 
                 Log::error('HQ sync push failed', [
                     'station' => $station,
@@ -161,7 +167,7 @@ class HQSyncService
             $modelClass = $this->stationModels()[$station];
             $marked = 0;
 
-            if (!empty($receivedIds)) {
+            if (! empty($receivedIds)) {
                 $marked = $modelClass::whereIn('id', $receivedIds)
                     ->whereNull('hq_synced_at')
                     ->update(['hq_synced_at' => now()]);
@@ -171,11 +177,11 @@ class HQSyncService
 
             return ['pushed' => $marked, 'failed' => $records->count() - $marked];
         } catch (ConnectionException $e) {
-            $this->failLog($logId, 'Connection error: ' . $e->getMessage());
+            $this->failLog($logId, 'Connection error: '.$e->getMessage());
 
             return ['pushed' => 0, 'failed' => $records->count()];
         } catch (\Throwable $e) {
-            $this->failLog($logId, get_class($e) . ': ' . $e->getMessage());
+            $this->failLog($logId, get_class($e).': '.$e->getMessage());
 
             return ['pushed' => 0, 'failed' => $records->count()];
         }

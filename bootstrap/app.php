@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\VerifyHQToken;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         }
 
         $middleware->alias([
-            'hq.token' => \App\Http\Middleware\VerifyHQToken::class,
+            'hq.token' => VerifyHQToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

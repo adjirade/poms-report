@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class StationLogsExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithTitle
+class StationLogsExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithTitle
 {
     /**
      * Column labels per station.
@@ -36,7 +36,7 @@ class StationLogsExport implements FromCollection, WithHeadings, WithMapping, Sh
             ->whereDate('timestamp_kirim', '<=', $this->dateTo)
             ->orderBy('timestamp_kirim', 'asc');
 
-        if (!$this->allPlants) {
+        if (! $this->allPlants) {
             $query->where('plant_id', $this->plantId);
         }
 
@@ -90,7 +90,7 @@ class StationLogsExport implements FromCollection, WithHeadings, WithMapping, Sh
 
     protected function stationColumns(): array
     {
-        return match($this->station) {
+        return match ($this->station) {
             'timbang' => [
                 'No SPB' => 'no_spb',
                 'Tonase Bruto (kg)' => 'tonase_bruto',

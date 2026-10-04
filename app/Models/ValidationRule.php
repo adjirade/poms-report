@@ -56,11 +56,13 @@ class ValidationRule extends Model
     {
         if ($this->data_type === 'enum') {
             $allowedValues = explode(',', $this->allowed_values);
+
             return in_array($value, $allowedValues);
         }
 
         // Numeric validation
         $numericValue = (float) $value;
+
         return $numericValue >= $this->min_value && $numericValue <= $this->max_value;
     }
 

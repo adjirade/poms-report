@@ -1,62 +1,72 @@
 @extends('layouts.app')
 
+@section('title', 'Analisis Losses')
+@section('subtitle', 'Kehilangan minyak & mutu lab')
+
 @section('content')
 <div class="space-y-6">
     
     <!-- Header KPIs -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-lg shadow-lg p-6">
-            <p class="text-red-100 text-sm mb-2">Avg Losses Fiber</p>
-            <p class="text-4xl font-bold">{{ number_format($avgLossesFiber, 2) }}%</p>
-            <p class="text-red-100 text-xs mt-2">Target: < 5.0%</p>
+    @php
+        $lossKpis = [
+            ['label' => 'Avg Losses Fiber', 'value' => number_format($avgLossesFiber, 2).'%', 'target' => 'Target: < 5.0%', 'icon' => 'fa-wind', 'tile' => 'from-rose-400 to-red-600'],
+            ['label' => 'Avg Losses Jankos', 'value' => number_format($avgLossesJankos, 2).'%', 'target' => 'Target: < 1.0%', 'icon' => 'fa-seedling', 'tile' => 'from-orange-400 to-orange-600'],
+            ['label' => 'Avg Kadar ALB (FFA)', 'value' => number_format($avgKadarAlb, 2).'%', 'target' => 'Target: 2.0-5.0%', 'icon' => 'fa-flask', 'tile' => 'from-amber-400 to-yellow-600'],
+        ];
+    @endphp
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        @foreach($lossKpis as $k)
+        <div class="card card-pad group relative overflow-hidden transition hover:-translate-y-0.5 hover:shadow-glass-lg">
+            <div class="pointer-events-none absolute -right-8 -top-10 h-24 w-24 rounded-full bg-gradient-to-br {{ $k['tile'] }} opacity-20 blur-2xl transition group-hover:opacity-35"></div>
+            <div class="relative flex items-start justify-between">
+                <div>
+                    <p class="mb-2 text-sm text-gray-500">{{ $k['label'] }}</p>
+                    <p class="text-4xl font-bold text-gray-800">{{ $k['value'] }}</p>
+                    <p class="mt-2 text-xs text-gray-400">{{ $k['target'] }}</p>
+                </div>
+                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br {{ $k['tile'] }} text-white shadow-float">
+                    <i class="fas {{ $k['icon'] }}"></i>
+                </span>
+            </div>
         </div>
-        
-        <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-lg shadow-lg p-6">
-            <p class="text-orange-100 text-sm mb-2">Avg Losses Jankos</p>
-            <p class="text-4xl font-bold">{{ number_format($avgLossesJankos, 2) }}%</p>
-            <p class="text-orange-100 text-xs mt-2">Target: < 1.0%</p>
-        </div>
-        
-        <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white rounded-lg shadow-lg p-6">
-            <p class="text-yellow-100 text-sm mb-2">Avg Kadar ALB (FFA)</p>
-            <p class="text-4xl font-bold">{{ number_format($avgKadarAlb, 2) }}%</p>
-            <p class="text-yellow-100 text-xs mt-2">Target: 2.0-5.0%</p>
-        </div>
+        @endforeach
     </div>
     
     <!-- Losses Trend Chart -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="card card-pad">
         <h3 class="text-lg font-bold text-gray-800 mb-4">
             <i class="fas fa-chart-area text-red-600 mr-2"></i>
             Losses Trend (14 Days)
         </h3>
-        <canvas id="lossesTrendChart" height="100"></canvas>
+        <div class="relative" style="height: 280px;">
+            <canvas id="lossesTrendChart"></canvas>
+        </div>
     </div>
     
     <!-- Detailed Lab Data Table -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
+    <div class="card">
+        <div class="border-b border-white/50 px-6 py-4">
             <h3 class="text-lg font-bold text-gray-800">
-                <i class="fas fa-flask text-blue-600 mr-2"></i>
+                <i class="fas fa-flask mr-2 text-sky-600"></i>
                 Lab Quality Control Data (Last 30 Days)
             </h3>
         </div>
         
         <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
+            <table class="glass-table w-full">
+                <thead>
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700">Date</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700">User</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700">Kadar ALB (FFA)</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700">Losses Fiber</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700">Losses Jankos</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700">Status</th>
+                        <th scope="col" class="px-4 py-3 text-left">Date</th>
+                        <th scope="col" class="px-4 py-3 text-left">User</th>
+                        <th scope="col" class="px-4 py-3 text-left">Kadar ALB (FFA)</th>
+                        <th scope="col" class="px-4 py-3 text-left">Losses Fiber</th>
+                        <th scope="col" class="px-4 py-3 text-left">Losses Jankos</th>
+                        <th scope="col" class="px-4 py-3 text-left">Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @forelse($labData as $data)
-                    <tr class="hover:bg-gray-50">
+                <tbody class="divide-y divide-white/40">
+                    @forelse($labTable as $data)
+                    <tr>
                         <td class="px-4 py-3 text-sm text-gray-900">
                             {{ $data->timestamp_kirim->format('d M Y H:i') }}
                         </td>
@@ -64,20 +74,17 @@
                             {{ $data->user->name }}
                         </td>
                         <td class="px-4 py-3 text-sm">
-                            <span class="px-2 py-1 rounded text-xs font-semibold
-                                {{ $data->kadar_alb_cpo >= 2 && $data->kadar_alb_cpo <= 5 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                            <span class="badge {{ $data->kadar_alb_cpo >= 2 && $data->kadar_alb_cpo <= 5 ? 'border-green-200/70 bg-green-100 text-green-800' : 'border-red-200/70 bg-red-100 text-red-800' }}">
                                 {{ number_format($data->kadar_alb_cpo, 2) }}%
                             </span>
                         </td>
                         <td class="px-4 py-3 text-sm">
-                            <span class="px-2 py-1 rounded text-xs font-semibold
-                                {{ $data->losses_fiber_persen < 5 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                            <span class="badge {{ $data->losses_fiber_persen < 5 ? 'border-green-200/70 bg-green-100 text-green-800' : 'border-red-200/70 bg-red-100 text-red-800' }}">
                                 {{ number_format($data->losses_fiber_persen, 2) }}%
                             </span>
                         </td>
                         <td class="px-4 py-3 text-sm">
-                            <span class="px-2 py-1 rounded text-xs font-semibold
-                                {{ $data->losses_jankos_persen < 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                            <span class="badge {{ $data->losses_jankos_persen < 1 ? 'border-green-200/70 bg-green-100 text-green-800' : 'border-red-200/70 bg-red-100 text-red-800' }}">
                                 {{ number_format($data->losses_jankos_persen, 2) }}%
                             </span>
                         </td>
@@ -117,17 +124,17 @@ new Chart(lossesCtx, {
             {
                 label: 'Losses Fiber (%)',
                 data: {!! json_encode($lossesData->pluck('fiber')) !!},
-                borderColor: 'rgb(239, 68, 68)',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                tension: 0.4,
+                borderColor: '#ef4444',
+                backgroundColor: PomsChart.area(lossesCtx, '#ef4444'),
+                pointBackgroundColor: '#ef4444',
                 fill: true
             },
             {
                 label: 'Losses Jankos (%)',
                 data: {!! json_encode($lossesData->pluck('jankos')) !!},
-                borderColor: 'rgb(249, 115, 22)',
-                backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                tension: 0.4,
+                borderColor: '#f59e0b',
+                backgroundColor: PomsChart.area(lossesCtx, '#f59e0b'),
+                pointBackgroundColor: '#f59e0b',
                 fill: true
             }
         ]
@@ -139,12 +146,14 @@ new Chart(lossesCtx, {
             legend: { display: true, position: 'top' }
         },
         scales: {
-            y: { 
+            y: PomsChart.axis({
                 beginAtZero: true,
-                ticks: { 
+                ticks: {
+                    padding: 8,
                     callback: function(value) { return value + '%'; }
                 }
-            }
+            }),
+            x: PomsChart.axis({ grid: false })
         }
     }
 });

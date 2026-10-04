@@ -16,7 +16,7 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake('id_ID')->name(),
-            'phone_number' => '62' . fake()->unique()->numerify('8##########'),
+            'phone_number' => '62'.fake()->unique()->numerify('8##########'),
             'telegram_user_id' => null,
             'password' => 'password', // di-hash otomatis oleh cast 'hashed'
             'role' => 'operator',

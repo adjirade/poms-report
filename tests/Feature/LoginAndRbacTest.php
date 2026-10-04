@@ -125,7 +125,7 @@ class LoginAndRbacTest extends TestCase
     {
         // Route /debug-auth hanya ter-registrasi di environment local
         // (ship-gate: jangan sampai terekspos di produksi/testing).
-        if (!app()->environment('local')) {
+        if (! app()->environment('local')) {
             $this->get('/debug-auth')->assertNotFound();
 
             return;

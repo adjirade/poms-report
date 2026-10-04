@@ -1,6 +1,13 @@
 <?php
 
-use App\Models\{LogTimbang, LogSortasi, LogSterilizer, LogPress, LogKlarifikasi, LogKernel, LogLab, LogMaintenance};
+use App\Models\LogKernel;
+use App\Models\LogKlarifikasi;
+use App\Models\LogLab;
+use App\Models\LogMaintenance;
+use App\Models\LogPress;
+use App\Models\LogSortasi;
+use App\Models\LogSterilizer;
+use App\Models\LogTimbang;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -34,7 +41,7 @@ return new class extends Migration
                 $t->string('operator_name', 100)->nullable()->after('hq_source_id');
 
                 // Idempotensi: satu record pabrik hanya boleh diterima sekali per plant.
-                $t->unique(['plant_id', 'hq_source_id'], $t->getTable() . '_hq_source_unique');
+                $t->unique(['plant_id', 'hq_source_id'], $t->getTable().'_hq_source_unique');
             });
         }
     }
@@ -54,7 +61,7 @@ return new class extends Migration
 
         foreach ($tables as $table) {
             Schema::table($table, function (Blueprint $t) use ($table) {
-                $t->dropUnique($table . '_hq_source_unique');
+                $t->dropUnique($table.'_hq_source_unique');
                 $t->dropColumn(['hq_synced_at', 'hq_source_id', 'operator_name']);
             });
         }

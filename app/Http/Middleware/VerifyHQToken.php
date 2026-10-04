@@ -17,7 +17,7 @@ class VerifyHQToken
         $expected = (string) config('hq.api_token');
         $provided = (string) $request->header('X-HQ-API-TOKEN', '');
 
-        if ($expected === '' || $provided === '' || !hash_equals($expected, $provided)) {
+        if ($expected === '' || $provided === '' || ! hash_equals($expected, $provided)) {
             return response()->json([
                 'error' => 'Unauthorized: token API HQ tidak valid.',
             ], 401);

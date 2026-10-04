@@ -10,35 +10,35 @@
 // MB String Functions Polyfill
 // ========================================
 
-if (!function_exists('mb_split')) {
+if (! function_exists('mb_split')) {
     function mb_split($pattern, $string, $limit = -1)
     {
-        $pattern = '/' . $pattern . '/u';
-        
+        $pattern = '/'.$pattern.'/u';
+
         if ($limit == -1) {
             $result = preg_split($pattern, $string);
         } else {
             $result = preg_split($pattern, $string, $limit);
         }
-        
+
         return $result !== false ? $result : false;
     }
 }
 
-if (!function_exists('mb_ereg_replace')) {
+if (! function_exists('mb_ereg_replace')) {
     function mb_ereg_replace($pattern, $replacement, $string, $options = null)
     {
-        $pattern = '/' . $pattern . '/u';
-        
+        $pattern = '/'.$pattern.'/u';
+
         if ($options !== null && strpos($options, 'i') !== false) {
             $pattern .= 'i';
         }
-        
+
         return preg_replace($pattern, $replacement, $string);
     }
 }
 
-if (!function_exists('mb_eregi_replace')) {
+if (! function_exists('mb_eregi_replace')) {
     function mb_eregi_replace($pattern, $replacement, $string, $options = null)
     {
         return mb_ereg_replace($pattern, $replacement, $string, 'i');
@@ -49,12 +49,12 @@ if (!function_exists('mb_eregi_replace')) {
 // OpenSSL Functions Polyfill
 // ========================================
 
-if (!function_exists('openssl_cipher_iv_length')) {
+if (! function_exists('openssl_cipher_iv_length')) {
     /**
      * Gets the cipher IV length
      * Polyfill for missing openssl_cipher_iv_length() in PHP 8.3.33
      *
-     * @param string $cipher_algo The cipher method
+     * @param  string  $cipher_algo  The cipher method
      * @return int|false The cipher length on success, or false on failure
      */
     function openssl_cipher_iv_length($cipher_algo)
@@ -71,27 +71,28 @@ if (!function_exists('openssl_cipher_iv_length')) {
             'bf-cbc' => 8,
             'cast5-cbc' => 8,
         ];
-        
+
         $cipher_algo = strtolower($cipher_algo);
-        
+
         if (isset($iv_lengths[$cipher_algo])) {
             return $iv_lengths[$cipher_algo];
         }
-        
+
         // Default for AES (most common)
         if (strpos($cipher_algo, 'aes') !== false) {
             if (strpos($cipher_algo, 'gcm') !== false) {
                 return 12;
             }
+
             return 16;
         }
-        
+
         // Fallback: try to use openssl_encrypt to determine IV length
         // This is a workaround for unknown ciphers
         try {
             $test_data = 'test';
             $test_key = str_repeat('0', 32);
-            
+
             // Try with different IV lengths
             foreach ([16, 12, 8] as $iv_length) {
                 $iv = str_repeat('0', $iv_length);
@@ -100,10 +101,10 @@ if (!function_exists('openssl_cipher_iv_length')) {
                     return $iv_length;
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Ignore errors
         }
-        
+
         // Default fallback
         return 16;
     }
