@@ -51,9 +51,11 @@ php artisan config:clear
 ## 4. Hubungkan Akun User ke Bot
 
 1. User buka bot di Telegram → kirim **`/start`**.
-2. Bot meminta nomor telepon → user kirim nomor HP yang terdaftar.
+2. Bot menampilkan tombol **"📱 Hubungkan Nomor Saya"** → user tinggal tap
+   (share contact). Nomor HP dibandingkan dengan yang terdaftar di sistem.
 3. Setelah cocok, akun Telegram **tersimpan otomatis** ke kolom
-   `users.telegram_user_id` (terlihat di halaman Profil → status "Terhubung").
+   `users.telegram_user_id` (terlihat di halaman Profil → status "Terhubung")
+   dan bot menyambut dengan menu utama (📊 Ringkasan, 🚩 Flagged, ℹ️ Status).
 
 Atau uji pengiriman manual ke chat tertentu:
 

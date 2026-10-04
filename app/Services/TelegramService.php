@@ -131,15 +131,27 @@ class TelegramService
     }
 
     /**
-     * Send unauthorized access message
+     * Send unauthorized access message (dengan tombol "Bagikan Nomor Telepon"
+     * agar user tinggal tap untuk menghubungkan akun, tanpa ketik manual).
      */
     public function sendUnauthorizedMessage(string $chatId): bool
     {
-        $message = "🚫 *Akses Ditolak*\n\n";
-        $message .= "Nomor Anda belum teraktifkan atau tidak terdaftar dalam sistem.\n\n";
-        $message .= 'Silakan hubungi administrator untuk aktivasi akun.';
+        $message = "👋 *Selamat datang di POMS Bot!*\n\n";
+        $message .= "Nomor Telegram Anda belum terhubung ke akun POMS.\n\n";
+        $message .= 'Tekan tombol di bawah untuk menghubungkan akun Anda (nomor harus terdaftar di sistem).';
 
-        return $this->sendFormattedMessage($chatId, $message, 'Markdown');
+        $keyboard = json_encode([
+            'keyboard' => [
+                [['text' => '📱 Hubungkan Nomor Saya', 'request_contact' => true]],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => true,
+        ]);
+
+        return $this->sendMessage($chatId, $message, [
+            'parse_mode' => 'Markdown',
+            'reply_markup' => $keyboard,
+        ]);
     }
 
     /**
@@ -149,12 +161,19 @@ class TelegramService
     {
         $from = $message['from'] ?? [];
 
+        // Nomor HP bisa datang dari dua tempat: profil publik user (from.phone_number)
+        // atau tombol "Bagikan Nomor Telepon" (message.contact.phone_number).
+        // Tanpa fallback ini, linking akun via share contact tidak berfungsi.
+        $phone = $from['phone_number']
+            ?? $message['contact']['phone_number']
+            ?? null;
+
         return [
             'telegram_user_id' => (string) ($from['id'] ?? ''),
             'first_name' => $from['first_name'] ?? '',
             'last_name' => $from['last_name'] ?? '',
             'username' => $from['username'] ?? null,
-            'phone_number' => $from['phone_number'] ?? null,
+            'phone_number' => $phone,
         ];
     }
 

@@ -45,8 +45,12 @@ class ProcessTelegramMessage implements ShouldQueue
             $text = trim($messageData['text']);
             $chatId = $messageData['chat_id'];
 
-            // Convert Unix timestamp to Carbon
-            $messageDate = Carbon::createFromTimestamp($messageData['date']);
+            // Convert Unix timestamp to Carbon.
+            // PENTING: Carbon 3 default createFromTimestamp() ke UTC — tanpa TZ
+            // eksplisit, timestamp_kirim tersimpan 7 jam lebih awal dari
+            // timestamp_server (Asia/Jakarta) dan SEMUA record via bot
+            // otomatis di-flag sebagai anomali waktu.
+            $messageDate = Carbon::createFromTimestamp($messageData['date'], config('app.timezone'));
 
             Log::info('Processing Telegram message', [
                 'chat_id' => $chatId,
@@ -63,6 +67,18 @@ class ProcessTelegramMessage implements ShouldQueue
                     'telegram_user_id' => $userInfo['telegram_user_id'],
                     'text' => $text,
                 ]);
+
+                return;
+            }
+
+            // Pesan share-contact (tombol "Hubungkan Nomor Saya") tidak punya teks:
+            // setelah akun berhasil tertaut, sambut user dengan menu utama.
+            if ($text === '' && isset($this->message['contact'])) {
+                Log::info('Telegram account linked via shared contact', [
+                    'user_id' => $user->id,
+                    'telegram_user_id' => $userInfo['telegram_user_id'],
+                ]);
+                $this->sendMenu($telegram, $chatId, true);
 
                 return;
             }
