@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\KpiTargetConfig;
 use App\Support\StationChartConfig;
 use App\Support\StationLogDepartmentTrait;
 use Carbon\Carbon;
@@ -184,6 +185,47 @@ class StationAnalyticsService
                 'flagged' => (int) ($row->flagged ?? 0),
                 'avg' => $avg,
             ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Target vs realisasi parameter ber-target untuk satu stasiun pada rentang
+     * waktu (A6). Realisasi = rata-rata parameter pada rentang (1 query agregat).
+     *
+     * @return array<int, array{key: string, label: string, unit: string, direction: string, target_text: string, actual: ?float, achieved: ?bool, progress: int}>
+     */
+    public function targetProgress(string $plantId, string $station, Carbon $since, Carbon $until): array
+    {
+        $targets = KpiTargetConfig::forStation($station);
+        if ($targets === []) {
+            return [];
+        }
+
+        $modelClass = app(ValidationService::class)->getStationModel($station);
+        $series = collect(StationChartConfig::series($station))->keyBy('key');
+
+        // selectRaw aman: nama kolom berasal dari KpiTargetConfig (bukan input user).
+        $selects = [];
+        foreach (array_keys($targets) as $key) {
+            $selects[] = "AVG({$key}) as a_{$key}";
+        }
+
+        $row = $modelClass::query()
+            ->where('plant_id', $plantId)
+            ->whereBetween('timestamp_kirim', [$since->copy(), $until->copy()])
+            ->selectRaw(implode(', ', $selects))
+            ->first();
+
+        $result = [];
+        foreach ($targets as $key => $target) {
+            $actual = $row && $row->{"a_{$key}"} !== null ? round((float) $row->{"a_{$key}"}, 2) : null;
+
+            $evaluated = KpiTargetConfig::evaluate($key, $target, $actual);
+            $evaluated['label'] = $target['label'] ?? ($series[$key]['label'] ?? $key);
+            $evaluated['unit'] = $target['unit'] ?? ($series[$key]['unit'] ?? '');
+            $result[] = $evaluated;
         }
 
         return $result;

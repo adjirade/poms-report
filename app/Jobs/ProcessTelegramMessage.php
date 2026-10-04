@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\User;
+use App\Services\DailyRecapService;
 use App\Services\TelegramNotificationService;
 use App\Services\TelegramService;
 use App\Services\ValidationService;
@@ -269,6 +270,10 @@ class ProcessTelegramMessage implements ShouldQueue
             return 'menu';
         }
 
+        if (str_starts_with($t, '/rekap') || str_contains($t, 'rekap')) {
+            return 'rekap';
+        }
+
         if (str_starts_with($t, '/ringkasan') || str_contains($t, 'ringkasan')) {
             return 'ringkasan';
         }
@@ -295,6 +300,9 @@ class ProcessTelegramMessage implements ShouldQueue
             case 'menu':
                 $this->sendMenu($telegram, $chatId, $action === 'start');
                 break;
+            case 'rekap':
+                $telegram->sendFormattedMessage($chatId, $this->buildRecap($user));
+                break;
             case 'ringkasan':
                 $telegram->sendMessage($chatId, $this->buildRingkasan($user));
                 break;
@@ -320,7 +328,8 @@ class ProcessTelegramMessage implements ShouldQueue
         $keyboard = json_encode([
             'keyboard' => [
                 [['text' => '📊 Ringkasan'], ['text' => '🚩 Flagged']],
-                [['text' => 'ℹ️ Status Terakhir'], ['text' => '❔ Bantuan']],
+                [['text' => '📨 Rekap Harian'], ['text' => 'ℹ️ Status Terakhir']],
+                [['text' => '❔ Bantuan']],
             ],
             'resize_keyboard' => true,
         ]);
@@ -343,6 +352,22 @@ class ProcessTelegramMessage implements ShouldQueue
         }
 
         return array_keys($this->stationMap());
+    }
+
+    /**
+     * /rekap — rekap operasional harian plant (ringkasan per stasiun + KPI)
+     * on-demand. Hanya asisten ke atas (data mencakup seluruh pabrik).
+     */
+    protected function buildRecap(User $user): string
+    {
+        if (! in_array($user->role, ['asisten', 'askep', 'manager', 'hq_admin', 'developer'], true)) {
+            return "🔒 *Akses Ditolak*\n\nPerintah /rekap hanya tersedia untuk asisten ke atas.";
+        }
+
+        $recap = app(DailyRecapService::class);
+        $summary = $recap->summary($user->plant_id, now());
+
+        return $recap->recapText($summary);
     }
 
     /**
@@ -497,6 +522,7 @@ class ProcessTelegramMessage implements ShouldQueue
     {
         return "❔ *Bantuan POMS Bot*\n\n"
             ."*Menu:*\n"
+            ."/rekap — rekap harian operasional pabrik\n"
             ."/ringkasan — rekap input hari ini\n"
             ."/flagged — record flagged 7 hari\n"
             ."/status — status input terakhir Anda\n"

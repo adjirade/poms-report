@@ -53,4 +53,11 @@ return [
     // Chat ID Telegram penerima alert operasional (sync gagal, backup gagal,
     // dsb). Kosong = alert hanya masuk ke file log.
     'alert_telegram_chat_id' => env('POMS_ALERT_TELEGRAM_CHAT_ID', ''),
+
+    // Target KPI (A6 — Target vs Realisasi). Kosong = pakai default di
+    // App\Support\KpiTargetConfig. Dapat ditimpa per stasiun/parameter, mis.:
+    //   'targets' => ['lab' => ['kadar_alb_cpo' => ['max' => 4.0]]],
+    //   'plant_targets' => ['ffa' => ['max' => 4.5]],
+    'targets' => [],
+    'plant_targets' => [],
 ];

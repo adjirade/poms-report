@@ -219,6 +219,11 @@
                 <i class="fas fa-satellite-dish w-5 text-center"></i>
                 <span x-show="mobileOpen || !collapsed" x-cloak class="text-sm">HQ Sync Monitor</span>
             </a>
+            <a href="{{ route('settings.environment') }}"
+               class="flex items-center space-x-3 p-2.5 rounded-lg transition {{ request()->routeIs('settings.environment*') ? $activeNav : $idleNav }}">
+                <i class="fas fa-sliders w-5 text-center"></i>
+                <span x-show="mobileOpen || !collapsed" x-cloak class="text-sm">Environment &amp; Integrasi</span>
+            </a>
             @endcan
 
             <!-- Manajemen User (developer) -->

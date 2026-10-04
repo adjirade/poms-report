@@ -11,6 +11,7 @@ use App\Models\LogSortasi;
 use App\Models\LogSterilizer;
 use App\Models\LogTimbang;
 use App\Models\User;
+use App\Services\CommandCenterService;
 use App\Services\StationAnalyticsService;
 use App\Support\StationChartConfig;
 use Illuminate\Http\Request;
@@ -285,160 +286,11 @@ class DashboardController extends Controller
      * Command Center — satu layar KPI untuk manajemen: tonnage, kualitas,
      * efisiensi, alert, status 8 stasiun, dan tren 7 hari.
      */
-    public function commandCenter()
+    public function commandCenter(CommandCenterService $commandCenter)
     {
         $user = auth()->user();
-        $plantId = $user->plant_id;
-        $today = now()->startOfDay();
 
-        // --- KPI hari ini (1 query agregat per stasiun) ---
-        $recordsToday = 0;
-        $flaggedToday = 0;
-        $unverifiedToday = 0;
-        foreach ($this->getAllStationModels() as $model) {
-            $row = $model::query()
-                ->where('plant_id', $plantId)
-                ->whereBetween('timestamp_kirim', [$today, now()->endOfDay()])
-                ->selectRaw(implode(', ', [
-                    'COUNT(*) as total',
-                    'SUM(CASE WHEN is_flagged THEN 1 ELSE 0 END) as flagged',
-                    'SUM(CASE WHEN NOT is_verified THEN 1 ELSE 0 END) as unverified',
-                ]))
-                ->first();
-
-            $recordsToday += (int) ($row->total ?? 0);
-            $flaggedToday += (int) ($row->flagged ?? 0);
-            $unverifiedToday += (int) ($row->unverified ?? 0);
-        }
-
-        // --- Kualitas & produksi hari ini ---
-        $ffaToday = LogLab::where('plant_id', $plantId)
-            ->whereBetween('timestamp_kirim', [$today, now()->endOfDay()])
-            ->avg('kadar_alb_cpo');
-        $lossesFiberToday = LogLab::where('plant_id', $plantId)
-            ->whereBetween('timestamp_kirim', [$today, now()->endOfDay()])
-            ->avg('losses_fiber_persen');
-        $tonnageToday = LogTimbang::where('plant_id', $plantId)
-            ->whereBetween('timestamp_kirim', [$today, now()->endOfDay()])
-            ->sum('tonase_bruto');
-        $efficiency = $this->getPlantEfficiency($plantId);
-
-        // --- Status 8 stasiun hari ini ---
-        $stationStatus = [];
-        foreach ($this->getAllStationModels() as $station => $model) {
-            $row = $model::query()
-                ->where('plant_id', $plantId)
-                ->whereBetween('timestamp_kirim', [$today, now()->endOfDay()])
-                ->selectRaw(implode(', ', [
-                    'COUNT(*) as total',
-                    'SUM(CASE WHEN is_flagged THEN 1 ELSE 0 END) as flagged',
-                    'SUM(CASE WHEN NOT is_verified THEN 1 ELSE 0 END) as unverified',
-                ]))
-                ->first();
-
-            $count = (int) ($row->total ?? 0);
-            $flagged = (int) ($row->flagged ?? 0);
-            $unverified = (int) ($row->unverified ?? 0);
-
-            $status = 'idle'; // tidak ada data
-            if ($flagged > 0) {
-                $status = 'danger';
-            } elseif ($count > 0 && $unverified > 0) {
-                $status = 'warning';
-            } elseif ($count > 0) {
-                $status = 'ok';
-            }
-
-            $stationStatus[] = [
-                'station' => $station,
-                'title' => StationChartConfig::exists($station)
-                    ? StationChartConfig::title($station)
-                    : ucfirst($station),
-                'total' => $count,
-                'flagged' => $flagged,
-                'unverified' => $unverified,
-                'status' => $status,
-            ];
-        }
-
-        // --- Tren 7 hari (total + flagged, semua stasiun) ---
-        $start = now()->subDays(6)->startOfDay();
-        $end = now()->endOfDay();
-        $byDate = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $d = now()->subDays($i);
-            $byDate[$d->format('Y-m-d')] = ['label' => $d->format('d M'), 'total' => 0, 'flagged' => 0];
-        }
-        foreach ($this->getAllStationModels() as $model) {
-            $rows = $model::query()
-                ->where('plant_id', $plantId)
-                ->whereBetween('timestamp_kirim', [$start, $end])
-                ->selectRaw('DATE(timestamp_kirim) as d, COUNT(*) as total, SUM(CASE WHEN is_flagged THEN 1 ELSE 0 END) as flagged')
-                ->groupBy('d')
-                ->get();
-            foreach ($rows as $row) {
-                $key = substr((string) $row->d, 0, 10);
-                if (isset($byDate[$key])) {
-                    $byDate[$key]['total'] += (int) $row->total;
-                    $byDate[$key]['flagged'] += (int) $row->flagged;
-                }
-            }
-        }
-
-        // --- Tren tonnage 7 hari (stasiun timbang) ---
-        $tonnageRows = LogTimbang::where('plant_id', $plantId)
-            ->whereBetween('timestamp_kirim', [$start, $end])
-            ->selectRaw('DATE(timestamp_kirim) as d, SUM(tonase_bruto) as bruto')
-            ->groupBy('d')
-            ->get()
-            ->keyBy(fn ($r) => substr((string) $r->d, 0, 10));
-        $tonnageTrend = [];
-        foreach ($byDate as $key => $day) {
-            $tonnageTrend[] = [
-                'label' => $day['label'],
-                'bruto' => isset($tonnageRows[$key]) ? round((float) $tonnageRows[$key]->bruto / 1000, 2) : 0, // ton
-            ];
-        }
-
-        // --- Alert terbaru (5 flagged terakhir) ---
-        $recentAlerts = collect();
-        foreach ($this->getAllStationModels() as $station => $model) {
-            $logs = $model::query()
-                ->where('plant_id', $plantId)
-                ->where('is_flagged', true)
-                ->with('user')
-                ->latest('timestamp_kirim')
-                ->limit(3)
-                ->get(['id', 'user_id', 'timestamp_kirim', 'timestamp_server', 'is_verified']);
-
-            foreach ($logs as $log) {
-                $recentAlerts->push([
-                    'station' => $station,
-                    'id' => $log->id,
-                    'user' => $log->user->name ?? 'N/A',
-                    'at' => $log->timestamp_kirim,
-                    'diff' => $log->timestamp_server ? round($log->timestamp_server->diffInHours($log->timestamp_kirim), 1) : null,
-                    'verified' => $log->is_verified,
-                ]);
-            }
-        }
-        $recentAlerts = $recentAlerts->sortByDesc('at')->take(5)->values();
-
-        return view('analytics.command-center', [
-            'kpi' => [
-                'records_today' => $recordsToday,
-                'flagged_today' => $flaggedToday,
-                'unverified_today' => $unverifiedToday,
-                'tonnage_today' => $tonnageToday !== null ? round((float) $tonnageToday / 1000, 2) : 0.0, // ton
-                'ffa_today' => $ffaToday !== null ? round((float) $ffaToday, 2) : null,
-                'losses_fiber_today' => $lossesFiberToday !== null ? round((float) $lossesFiberToday, 2) : null,
-                'efficiency' => $efficiency,
-            ],
-            'stationStatus' => $stationStatus,
-            'dailyTrend' => array_values($byDate),
-            'tonnageTrend' => $tonnageTrend,
-            'recentAlerts' => $recentAlerts,
-        ]);
+        return view('analytics.command-center', $commandCenter->build($user->plant_id));
     }
 
     /**
@@ -480,6 +332,7 @@ class DashboardController extends Controller
         $comparison = $analytics->dayComparison($user->plant_id, $station);
         $statusBreakdown = $analytics->statusBreakdown($user->plant_id, $station, $since, $until);
         $shiftBreakdown = $analytics->shiftBreakdown($user->plant_id, $station, $since, $until);
+        $targetProgress = $analytics->targetProgress($user->plant_id, $station, $since, $until);
         $records = $analytics->detailRecords($user->plant_id, $station, $since, $until);
 
         $totalInRange = array_sum($chart['counts']['total']);
@@ -495,6 +348,7 @@ class DashboardController extends Controller
             'comparison' => $comparison,
             'statusBreakdown' => $statusBreakdown,
             'shiftBreakdown' => $shiftBreakdown,
+            'targetProgress' => $targetProgress,
             'records' => $records,
             'totalInRange' => $totalInRange,
             'flaggedInRange' => $flaggedInRange,

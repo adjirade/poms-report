@@ -299,4 +299,26 @@ class TelegramBotFlowUatTest extends TestCase
             return $job->chatId === '999001';
         });
     }
+
+    // ------------------------------------------------------------------
+    // 9. /rekap — dibatasi asisten ke atas; asisten menerima rekap harian
+    // ------------------------------------------------------------------
+    public function test_uat_9_rekap_command_restricted_then_returns_recap(): void
+    {
+        // Operator (default) ditolak.
+        $this->makeUser(['telegram_user_id' => '888001']);
+        $this->handle($this->update('/rekap'));
+        $this->assertStringContainsString('Akses Ditolak', $this->lastBotText());
+
+        // Asisten menerima rekap harian.
+        $this->makeUser([
+            'name' => 'Asisten UAT',
+            'phone_number' => '6289876500001',
+            'role' => 'asisten',
+            'department' => 'proses',
+            'telegram_user_id' => '888002',
+        ]);
+        $this->handle($this->update('/rekap', '888002'));
+        $this->assertStringContainsString('REKAP HARIAN POMS', $this->lastBotText('888002'));
+    }
 }

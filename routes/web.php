@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EnvSettingsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\HQSyncMonitorController;
 use App\Http\Controllers\LogInputController;
@@ -173,6 +174,10 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
         // dikirim via POST agar bisa di-embed DomPDF.
         Route::post('/station-performance', [ExportController::class, 'stationPerformancePdf'])
             ->name('station-performance');
+
+        // Laporan Command Center (KPI + target + status stasiun + tren 7 hari).
+        Route::get('/command-center', [ExportController::class, 'commandCenterPdf'])
+            ->name('command-center');
     });
 
     // Validation Rules Management
@@ -181,10 +186,15 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
         Route::put('/validation-rules/{id}', [ValidationRuleController::class, 'update'])->name('validation-rules.update');
     });
 
-    // HQ Sync Monitoring (developer only)
+    // HQ Sync Monitoring + Environment editor (developer only)
     Route::middleware('can:access-settings')->prefix('settings')->name('settings.')->group(function () {
         Route::get('/hq-sync', [HQSyncMonitorController::class, 'index'])->name('hq-sync');
         Route::post('/hq-sync/run', [HQSyncMonitorController::class, 'run'])->name('hq-sync.run');
+
+        // Editor .env (token bot, API, username, identitas pabrik) — developer.
+        Route::get('/environment', [EnvSettingsController::class, 'index'])->name('environment');
+        Route::put('/environment', [EnvSettingsController::class, 'update'])->name('environment.update');
+        Route::post('/environment/test-bot', [EnvSettingsController::class, 'testBot'])->name('environment.test-bot');
     });
 
     // Manajemen User (developer only) — CRUD, role, reset password

@@ -133,6 +133,54 @@
         </div>
     </div>
 
+    <!-- Target vs Realisasi (A6) -->
+    <div class="card card-pad">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-lg font-bold text-gray-800">
+                <i class="fas fa-bullseye text-green-700 mr-2"></i>
+                Target vs Realisasi — {{ $stationTitle }} ({{ $range }} hari)
+            </h2>
+            <span class="text-xs text-gray-500">Realisasi = rata-rata rentang {{ $range }} hari</span>
+        </div>
+        @if(count($targetProgress) === 0)
+            <p class="text-sm text-gray-500">Stasiun ini belum memiliki target KPI terkonfigurasi.</p>
+        @else
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach($targetProgress as $t)
+            @php
+                $ok = $t['achieved'] === true;
+                $none = $t['achieved'] === null;
+                $bar = $none ? 'bg-slate-300' : ($ok ? 'bg-emerald-500' : 'bg-rose-500');
+            @endphp
+            <div class="rounded-2xl border border-white/50 bg-white/60 p-4">
+                <div class="flex items-start justify-between gap-2">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-800">{{ $t['label'] }}</p>
+                        <p class="text-xs text-gray-500">Target {{ $t['target_text'] }} @if($t['unit']){{ $t['unit'] }}@endif</p>
+                    </div>
+                    @if($none)
+                        <span class="badge badge-muted">— Data</span>
+                    @elseif($ok)
+                        <span class="badge border-emerald-200 bg-emerald-100 text-emerald-800">✓ Tercapai</span>
+                    @else
+                        <span class="badge border-rose-200 bg-rose-100 text-rose-800">✗ Belum</span>
+                    @endif
+                </div>
+                <p class="mt-2 text-2xl font-bold {{ $none ? 'text-gray-500' : ($ok ? 'text-emerald-700' : 'text-rose-700') }}">
+                    {{ $t['actual'] !== null ? number_format($t['actual'], 2) : '—' }}
+                    @if($t['unit'])<span class="text-sm font-medium text-gray-500">{{ $t['unit'] }}</span>@endif
+                </p>
+                <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200"
+                     role="progressbar" aria-valuenow="{{ $t['progress'] }}" aria-valuemin="0" aria-valuemax="100"
+                     aria-label="Capaian target {{ $t['label'] }}: {{ $t['progress'] }} persen">
+                    <div class="h-full rounded-full {{ $bar }}" style="width: {{ $t['progress'] }}%"></div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
+
     <!-- Analisis per shift -->
     <div class="card card-pad">
         <h2 class="mb-4 text-lg font-bold text-gray-800">

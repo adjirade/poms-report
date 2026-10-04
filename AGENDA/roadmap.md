@@ -32,3 +32,15 @@
 3. **B1** (kalkulator) — kecil, langsung terasa.
 4. **A2/B4** (laporan otomatis Telegram) — menyatukan dengan infra bot yang sudah siap.
 5. Lanjut: A6 → A5 → B3 → B5 → B2.
+
+## Status implementasi
+
+- ✅ A1 Command Center — web (`analytics/command-center`) + PDF (`export.command-center`).
+- ✅ A2 Rekap otomatis Telegram + perintah `/rekap` on-demand di bot.
+- ✅ A3 Analisis per shift — halaman performa stasiun + PDF.
+- ✅ A4 Statistik penyebab flagged.
+- ✅ A6 Target vs Realisasi — `App\Support\KpiTargetConfig` + progress bar di Command Center & Performa Stasiun + PDF.
+- ✅ B1 Kalkulator pabrik.
+- ✅ B4 Laporan terjadwal PDF ke Telegram.
+- 🆕 Environment Editor (role developer) — `settings/environment`: ubah token bot/API/username/identitas pabrik lewat UI + uji koneksi bot (`getMe`).
+- Berikutnya: A5 (tren + deteksi anomali) → B3 (tiket maintenance) → B5 → B2.

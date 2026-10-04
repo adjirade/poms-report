@@ -140,6 +140,53 @@
     </div>
     @endif
 
+    @if(count($targetProgress) > 0)
+    <div class="section-title">TARGET VS REALISASI ({{ $range }} HARI)</div>
+    <table class="data">
+        <thead>
+            <tr>
+                <th style="width: 30%;">Parameter</th>
+                <th style="width: 16%;">Target</th>
+                <th style="width: 16%;">Realisasi</th>
+                <th style="width: 14%;">Capaian</th>
+                <th style="width: 24%;">Progress</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($targetProgress as $t)
+            @php
+                $ok = $t['achieved'] === true;
+                $none = $t['achieved'] === null;
+            @endphp
+            <tr>
+                <td>{{ $t['label'] }}</td>
+                <td>{{ $t['target_text'] }} @if($t['unit']){{ $t['unit'] }}@endif</td>
+                <td>{{ $t['actual'] !== null ? number_format($t['actual'], 2) : '—' }}</td>
+                <td>
+                    @if($none)
+                        <span style="color: #6b7280;">— Data</span>
+                    @elseif($ok)
+                        <span style="color: #047857;">✓ Tercapai</span>
+                    @else
+                        <span style="color: #be123c;">✗ Belum</span>
+                    @endif
+                </td>
+                <td>
+                    <table style="width: 100%; border-collapse: collapse;"><tr>
+                        <td style="border: none; width: 80%; padding: 0;">
+                            <div style="width: 100%; background-color: #e5e7eb; height: 8px;">
+                                <div style="height: 8px; background-color: {{ $ok ? '#059669' : '#e11d48' }}; width: {{ $t['progress'] }}%;"></div>
+                            </div>
+                        </td>
+                        <td style="border: none; width: 20%; padding: 0 0 0 6px; font-size: 7.5pt;">{{ $t['progress'] }}%</td>
+                    </tr></table>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
+
     <div class="section-title">PERBANDINGAN HARI INI VS KEMARIN</div>
     <table class="data">
         <thead>
@@ -207,6 +254,36 @@
             @endforelse
         </tbody>
     </table>
+
+    @if(count($shiftBreakdown) > 0)
+    <div class="section-title">ANALISIS PER SHIFT ({{ $range }} HARI)</div>
+    <table class="data">
+        <thead>
+            <tr>
+                <th style="width: 14%;">Shift</th>
+                <th style="width: 14%;">Jam Kerja</th>
+                <th style="width: 10%;">Record</th>
+                <th style="width: 10%;">Flagged</th>
+                @foreach($seriesConfig as $s)
+                    <th>{{ $s['label'] }}@if($s['unit']) ({{ $s['unit'] }})@endif</th>
+                @endforeach
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($shiftBreakdown as $shift)
+            <tr>
+                <td>{{ $shift['label'] }}</td>
+                <td>{{ $shift['hours'] }}</td>
+                <td>{{ number_format($shift['total']) }}</td>
+                <td class="{{ $shift['flagged'] > 0 ? 'flagged-cell' : '' }}">{{ $shift['flagged'] > 0 ? '⚑ ' . number_format($shift['flagged']) : '0' }}</td>
+                @foreach($seriesConfig as $s)
+                    <td>{{ $shift['avg'][$s['key']] !== null ? number_format($shift['avg'][$s['key']], 2) : '—' }}</td>
+                @endforeach
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
 
     @include('exports.partials.signatures', [
         'createdBy' => $preparedBy,

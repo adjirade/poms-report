@@ -7,6 +7,7 @@ use App\Models\LogLab;
 use App\Models\LogPress;
 use App\Models\LogSterilizer;
 use App\Models\LogTimbang;
+use App\Services\CommandCenterService;
 use App\Services\StationAnalyticsService;
 use App\Services\ValidationService;
 use App\Support\StationChartConfig;
@@ -104,6 +105,8 @@ class ExportController extends Controller
         $chart = $analytics->dailySeries($user->plant_id, $station, $from, $until);
         $status = $analytics->statusBreakdown($user->plant_id, $station, $from, $until);
         $comparison = $analytics->dayComparison($user->plant_id, $station);
+        $targetProgress = $analytics->targetProgress($user->plant_id, $station, $from, $until);
+        $shiftBreakdown = $analytics->shiftBreakdown($user->plant_id, $station, $from, $until);
 
         // Baris rekap harian untuk tabel PDF (paramter + volume + flag).
         $dailyRows = [];
@@ -132,6 +135,8 @@ class ExportController extends Controller
             'range' => $range,
             'status' => $status,
             'comparison' => $comparison,
+            'targetProgress' => $targetProgress,
+            'shiftBreakdown' => $shiftBreakdown,
             'seriesConfig' => StationChartConfig::series($station),
             'dailyRows' => $dailyRows,
             'chartImage' => $chartImage,
@@ -140,6 +145,29 @@ class ExportController extends Controller
             ->setOption(['isPhpEnabled' => true, 'defaultFont' => 'Arial']);
 
         $filename = "performa_{$station}_{$from->format('Ymd')}_to_{$until->format('Ymd')}.pdf";
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Laporan Command Center (PDF): KPI + target vs realisasi, status 8 stasiun,
+     * dan tren 7 hari. Data diambil dari CommandCenterService (sumber sama
+     * dengan tampilan web).
+     */
+    public function commandCenterPdf(CommandCenterService $commandCenter)
+    {
+        $user = auth()->user();
+        $data = $commandCenter->build($user->plant_id);
+
+        $pdf = Pdf::loadView('exports.command-center-pdf', array_merge($data, [
+            'plant' => $user->plant_id,
+            'plantName' => config('poms.plant_name'),
+            'preparedBy' => $user->name,
+        ]))
+            ->setPaper(config('export.paper_size', env('EXPORT_PAPER_SIZE', 'a4')), 'portrait')
+            ->setOption(['isPhpEnabled' => true, 'defaultFont' => 'Arial']);
+
+        $filename = "command_center_{$user->plant_id}_".now()->format('Ymd_His').'.pdf';
 
         return $pdf->download($filename);
     }
