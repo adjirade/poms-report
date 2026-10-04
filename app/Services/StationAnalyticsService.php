@@ -18,6 +18,8 @@ class StationAnalyticsService
 {
     use StationLogDepartmentTrait;
 
+    public function __construct(protected KpiTargetService $targets) {}
+
     /**
      * Rata-rata harian tiap series untuk satu stasiun.
      *
@@ -278,7 +280,7 @@ class StationAnalyticsService
      */
     public function targetProgress(string $plantId, string $station, Carbon $since, Carbon $until): array
     {
-        $targets = KpiTargetConfig::forStation($station);
+        $targets = $this->targets->stationTargets($plantId, $station);
         if ($targets === []) {
             return [];
         }

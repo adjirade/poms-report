@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnvSettingsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\HQSyncMonitorController;
+use App\Http\Controllers\KpiTargetController;
 use App\Http\Controllers\LogInputController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
@@ -184,6 +185,12 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
     Route::middleware('can:edit-validation-rules')->prefix('settings')->name('settings.')->group(function () {
         Route::get('/validation-rules', [ValidationRuleController::class, 'index'])->name('validation-rules');
         Route::put('/validation-rules/{id}', [ValidationRuleController::class, 'update'])->name('validation-rules.update');
+    });
+
+    // Editor Target KPI per stasiun (manager + developer)
+    Route::middleware('can:edit-kpi-targets')->prefix('settings')->name('settings.')->group(function () {
+        Route::get('/kpi-targets', [KpiTargetController::class, 'index'])->name('kpi-targets');
+        Route::put('/kpi-targets', [KpiTargetController::class, 'update'])->name('kpi-targets.update');
     });
 
     // HQ Sync Monitoring + Environment editor (developer only)

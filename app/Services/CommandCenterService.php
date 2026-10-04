@@ -21,6 +21,8 @@ use App\Support\StationChartConfig;
  */
 class CommandCenterService
 {
+    public function __construct(protected KpiTargetService $targets) {}
+
     /**
      * Susun seluruh data Command Center untuk satu plant.
      *
@@ -112,7 +114,7 @@ class CommandCenterService
             'efficiency' => (float) $efficiency,
         ];
         $kpiTargets = [];
-        foreach (KpiTargetConfig::plantTargets() as $key => $target) {
+        foreach ($this->targets->plantTargets($plantId) as $key => $target) {
             $kpiTargets[] = KpiTargetConfig::evaluate($key, $target, $plantValues[$key] ?? null);
         }
 

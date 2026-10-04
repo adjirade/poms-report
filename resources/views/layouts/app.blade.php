@@ -211,6 +211,14 @@
                 <span x-show="mobileOpen || !collapsed" x-cloak class="text-sm">Aturan Validasi</span>
             </a>
             @endcan
+
+            @can('edit-kpi-targets')
+            <a href="{{ route('settings.kpi-targets') }}"
+               class="flex items-center space-x-3 p-2.5 rounded-lg transition {{ request()->routeIs('settings.kpi-targets*') ? $activeNav : $idleNav }}">
+                <i class="fas fa-bullseye w-5 text-center"></i>
+                <span x-show="mobileOpen || !collapsed" x-cloak class="text-sm">Target KPI</span>
+            </a>
+            @endcan
             
             <!-- HQ Sync Monitor (developer) -->
             @can('access-settings')

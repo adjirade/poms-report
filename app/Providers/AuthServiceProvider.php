@@ -96,5 +96,10 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('edit-validation-rules', function (User $user) {
             return in_array($user->role, ['manager', 'developer']);
         });
+
+        // Edit target KPI per stasiun (manager pabrik + developer)
+        Gate::define('edit-kpi-targets', function (User $user) {
+            return in_array($user->role, ['manager', 'developer']);
+        });
     }
 }

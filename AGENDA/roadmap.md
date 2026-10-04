@@ -40,7 +40,7 @@
 - ✅ A3 Analisis per shift — halaman performa stasiun + PDF.
 - ✅ A4 Statistik penyebab flagged.
 - ✅ A5 Tren + deteksi anomali — moving average 7 hari (garis putus-putus) + penanda hari anomali (>2σ) di chart Performa Stasiun, ringkasan & tabel anomali di web + PDF.
-- ✅ A6 Target vs Realisasi — `App\Support\KpiTargetConfig` + progress bar di Command Center & Performa Stasiun + PDF.
+- ✅ A6 Target vs Realisasi — progress bar di Command Center & Performa Stasiun + PDF; target per stasiun kini **dapat diedit lewat UI** (Sistem → Target KPI, role manager) dan disimpan di tabel `kpi_targets`.
 - ✅ B1 Kalkulator pabrik.
 - ✅ B4 Laporan terjadwal PDF ke Telegram.
 - 🆕 Environment Editor (role developer) — `settings/environment`: ubah token bot/API/username/identitas pabrik lewat UI + uji koneksi bot (`getMe`).
