@@ -157,7 +157,16 @@
                 <span x-show="mobileOpen || !collapsed" x-cloak class="text-sm">Data Flagged</span>
             </a>
             @endcan
-            
+
+            <!-- B3 — Tiket Maintenance -->
+            @can('view-maintenance')
+            <a href="{{ route('maintenance.tickets') }}"
+               class="flex items-center space-x-3 p-2.5 rounded-lg transition {{ request()->routeIs('maintenance.*') ? $activeNav : $idleNav }}">
+                <i class="fas fa-screwdriver-wrench w-5 text-center"></i>
+                <span x-show="mobileOpen || !collapsed" x-cloak class="text-sm">Tiket Maintenance</span>
+            </a>
+            @endcan
+
             <!-- === ANALISIS === -->
             @can('access-full-dashboard')
             <p x-show="mobileOpen || !collapsed" x-cloak class="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-widest text-emerald-300/80">Analisis</p>

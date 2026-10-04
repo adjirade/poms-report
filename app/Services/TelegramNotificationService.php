@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\SendTelegramNotification;
+use App\Models\MaintenanceTicket;
 use App\Models\User;
 use App\Support\StationLogDepartmentTrait;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,8 @@ use Throwable;
  * Event yang dinotifikasi:
  *  1. Record FLAGGED masuk  -> semua asisten departemen pemilik stasiun.
  *  2. Record DIVERIFIKASI   -> operator pengirim data.
+ *  3. Tiket maintenance dibuat -> asisten/askep/manager departemen maintenance.
+ *  4. Status tiket maintenance berubah -> pelapor tiket.
  *
  * Semua kirim di-queue (SendTelegramNotification) dan menghormati preferensi
  * per-user (opt-out) — lihat users.telegram_notif_* dan /notif di bot.
@@ -97,6 +100,65 @@ class TelegramNotificationService
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Notifikasi tiket maintenance (B3).
+     *
+     * @param  string  $event  'created' (default) atau 'status'
+     */
+    public function notifyMaintenanceTicket(MaintenanceTicket $ticket, string $event = 'created'): void
+    {
+        try {
+            if ($event === 'status') {
+                $reporter = $ticket->reporter;
+                $recipients = $reporter ? collect([$reporter]) : collect();
+                $text = $this->maintenanceStatusMessage($ticket);
+            } else {
+                $recipients = User::query()
+                    ->where('plant_id', $ticket->plant_id)
+                    ->where('department', 'maintenance')
+                    ->whereIn('role', ['asisten', 'askep', 'manager'])
+                    ->where('status', 'active')
+                    ->whereNotNull('telegram_user_id')
+                    ->get();
+                $text = $this->maintenanceCreatedMessage($ticket);
+            }
+
+            $recipients
+                ->filter(fn (User $user) => $user->telegram_user_id && $user->wantsTelegramNotification('maintenance'))
+                ->each(fn (User $user) => $this->dispatchTo($user->telegram_user_id, $text));
+        } catch (Throwable $e) {
+            Log::warning('Gagal menyiapkan notifikasi tiket maintenance', [
+                'ticket' => $ticket->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    protected function maintenanceCreatedMessage(MaintenanceTicket $ticket): string
+    {
+        return implode("\n", [
+            "🛠️ *Tiket Maintenance Baru*\n",
+            '*Mesin:* '.$ticket->kode_mesin,
+            '*Masalah:* '.$ticket->judul,
+            '*Prioritas:* '.$ticket->priorityLabel(),
+            '*Pelapor:* '.($ticket->reporter?->name ?? '-'),
+            '*ID Tiket:* #'.$ticket->id,
+            "\n_Kelola status tiket lewat menu Tiket Maintenance di POMS._",
+        ]);
+    }
+
+    protected function maintenanceStatusMessage(MaintenanceTicket $ticket): string
+    {
+        return implode("\n", [
+            "🔧 *Status Tiket Maintenance Diperbarui*\n",
+            '*Mesin:* '.$ticket->kode_mesin,
+            '*Masalah:* '.$ticket->judul,
+            '*Status:* '.$ticket->statusLabel(),
+            '*ID Tiket:* #'.$ticket->id,
+            "\n_Terima kasih, laporan Anda sedang ditindaklanjuti._",
+        ]);
     }
 
     protected function dispatchTo(string $chatId, string $text): void

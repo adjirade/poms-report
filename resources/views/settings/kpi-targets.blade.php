@@ -22,6 +22,7 @@
             Pabrik <strong>{{ $plantId }}</strong>. Nilai di sini menimpa default sistem dan dipakai di
             Command Center, Performa Stasiun, serta laporan PDF. Centang
             <em>Reset</em> pada satu baris untuk mengembalikannya ke default.
+            Target <strong>plant-wide</strong> mengatur KPI pada Command Center.
         </p>
     </div>
 
@@ -30,6 +31,45 @@
             <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
         </div>
     @endif
+
+    @if(session('warning'))
+        <div class="rounded-2xl border border-amber-300/60 bg-amber-100/70 p-4 text-sm text-amber-900">
+            <i class="fas fa-triangle-exclamation mr-2"></i>{{ session('warning') }}
+        </div>
+    @endif
+
+    {{-- Import / Export: salin target antar pabrik atau edit massal di spreadsheet. --}}
+    <div class="card card-pad">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-gray-800">
+                    <i class="fas fa-file-csv text-green-700 mr-2"></i>Import / Export Target
+                </h2>
+                <p class="mt-1 text-sm text-gray-600">
+                    Ekspor memuat seluruh target efektif (default + override) dalam format CSV.
+                    Impor menimpa target per baris <code class="font-mono text-xs">station, parameter</code>;
+                    kolom <code class="font-mono text-xs">source</code> diabaikan saat impor.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('settings.kpi-targets.export') }}" class="btn-ghost">
+                    <i class="fas fa-file-export"></i> Export CSV
+                </a>
+                <form method="POST" action="{{ route('settings.kpi-targets.import') }}"
+                      enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
+                    @csrf
+                    <input type="file" name="file" accept=".csv,text/csv" required
+                           class="input !min-h-0 !w-auto !py-1.5 text-xs">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-file-import"></i> Impor CSV
+                    </button>
+                </form>
+            </div>
+        </div>
+        @error('file')
+            <p class="mt-2 text-xs text-rose-700"><i class="fas fa-circle-exclamation mr-1"></i>{{ $message }}</p>
+        @enderror
+    </div>
 
     <form method="POST" action="{{ route('settings.kpi-targets.update') }}" class="space-y-6">
         @csrf

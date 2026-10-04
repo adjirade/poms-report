@@ -2,8 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Models\MaintenanceTicket;
 use App\Models\User;
 use App\Services\DailyRecapService;
+use App\Services\MaintenanceTicketService;
 use App\Services\TelegramNotificationService;
 use App\Services\TelegramService;
 use App\Services\ValidationService;
@@ -87,6 +89,13 @@ class ProcessTelegramMessage implements ShouldQueue
             // Perintah notifikasi (/notif on|off) — sebelum menu karena butuh argumen.
             if (str_starts_with(mb_strtolower($text), '/notif')) {
                 $telegram->sendMessage($chatId, $this->handleNotifCommand($user, $text));
+
+                return;
+            }
+
+            // Perintah tiket maintenance (B3) — sebelum menu karena butuh argumen.
+            if ($this->isMaintenanceCommand($text)) {
+                $telegram->sendFormattedMessage($chatId, $this->handleMaintenanceCommand($user, $text));
 
                 return;
             }
@@ -329,6 +338,7 @@ class ProcessTelegramMessage implements ShouldQueue
             'keyboard' => [
                 [['text' => '📊 Ringkasan'], ['text' => '🚩 Flagged']],
                 [['text' => '📨 Rekap Harian'], ['text' => 'ℹ️ Status Terakhir']],
+                [['text' => '🛠️ Tiket Maintenance']],
                 [['text' => '❔ Bantuan']],
             ],
             'resize_keyboard' => true,
@@ -526,14 +536,184 @@ class ProcessTelegramMessage implements ShouldQueue
             ."/ringkasan — rekap input hari ini\n"
             ."/flagged — record flagged 7 hari\n"
             ."/status — status input terakhir Anda\n"
+            ."/tiket — daftar tiket maintenance aktif\n"
             ."/notif on|off — atur notifikasi\n"
             ."/menu — tampilkan menu\n"
             ."/bantuan — bantuan ini\n\n"
+            ."*Tiket maintenance:*\n"
+            ."/tiket PRESS-01 tinggi Kebocoran hidrolik\n"
+            ."/tiket_update 12 selesai Seal diganti\n\n"
             ."*Input data:*\n"
             ."/timbang SPB10293 25300 9500 4.5\n"
             ."/sterilizer 02 3.0 130 90\n"
             ."/lab 3.5 4.2 0.8\n\n"
             .'_Format lengkap tiap stasiun: kirim /nama_stasiun tanpa parameter._';
+    }
+
+    /**
+     * ---------------------------------------------------------------------
+     * Tiket maintenance via bot (B3)
+     * ---------------------------------------------------------------------
+     */
+
+    /**
+     * Apakah pesan adalah perintah tiket maintenance (butuh argumen, sehingga
+     * harus ditangani sebelum resolveMenuAction()).
+     */
+    protected function isMaintenanceCommand(string $text): bool
+    {
+        $t = mb_strtolower(trim($text));
+
+        return str_starts_with($t, '/tiket')
+            || str_starts_with($t, '/lapor')
+            || str_contains($t, 'tiket maintenance');
+    }
+
+    /**
+     * Tangani perintah tiket maintenance:
+     *  - `/tiket` (tanpa argumen)                 -> daftar tiket aktif
+     *  - `/tiket KODE prioritas Judul [| Deskripsi]` -> buat tiket (operator ke atas)
+     *  - `/lapor`                                 -> alias `/tiket`
+     *  - `/tiket_update ID status [catatan]`      -> ubah status (asisten ke atas)
+     */
+    protected function handleMaintenanceCommand(User $user, string $text): string
+    {
+        $trimmed = trim($text);
+
+        // Tombol keyboard "🛠️ Tiket Maintenance" (tanpa slash) -> daftar tiket.
+        if (! str_starts_with($trimmed, '/')) {
+            return $this->buildTicketList($user);
+        }
+
+        $parts = preg_split('/\s+/', $trimmed) ?: [];
+        $command = ltrim(mb_strtolower($parts[0] ?? ''), '/');
+        $body = trim(mb_substr($trimmed, mb_strlen($parts[0] ?? '')));
+
+        if ($command === 'tiket_update') {
+            return $this->updateTicketFromBot($user, $body);
+        }
+
+        return $body === ''
+            ? $this->buildTicketList($user)
+            : $this->createTicketFromBot($user, $body);
+    }
+
+    /**
+     * /tiket (tanpa argumen) — daftar tiket aktif pabrik user.
+     */
+    protected function buildTicketList(User $user): string
+    {
+        $tickets = MaintenanceTicket::forPlant($user->plant_id)
+            ->whereIn('status', ['open', 'dikerjakan'])
+            ->orderByDesc('id')
+            ->limit(10)
+            ->get();
+
+        $lines = ["🛠️ *Tiket Maintenance Aktif*\n"];
+
+        if ($tickets->isEmpty()) {
+            $lines[] = 'Tidak ada tiket aktif. 👍';
+        } else {
+            foreach ($tickets as $ticket) {
+                $lines[] = sprintf(
+                    '#%d %s — %s [%s/%s]',
+                    $ticket->id,
+                    $ticket->kode_mesin,
+                    $ticket->judul,
+                    $ticket->statusLabel(),
+                    $ticket->priorityLabel(),
+                );
+            }
+        }
+
+        $lines[] = "\n_Lapor: /tiket KODE prioritas Judul_"
+            ."\n_Ubah status (asisten+): /tiket_update ID status_";
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Buat tiket dari laporan kerusakan via bot.
+     */
+    protected function createTicketFromBot(User $user, string $body): string
+    {
+        if (! in_array($user->role, ['operator', 'asisten', 'askep', 'manager', 'developer'], true)) {
+            return "🔒 *Akses Ditolak*\n\nPeran Anda tidak dapat melaporkan kerusakan.";
+        }
+
+        // Judul bebas spasi; deskripsi opsional setelah tanda "|".
+        [$main, $desc] = array_pad(explode('|', $body, 2), 2, null);
+        $tokens = preg_split('/\s+/', trim((string) $main)) ?: [];
+
+        if (count($tokens) < 3) {
+            return "❌ *Format kurang lengkap*\n\n"
+                ."Format: `/tiket <kode_mesin> <prioritas> <judul>`\n"
+                ."Prioritas: rendah | sedang | tinggi\n"
+                ."Contoh: `/tiket PRESS-01 tinggi Kebocoran hidrolik`\n\n"
+                .'Deskripsi opsional dengan pemisah `|`: `/tiket PRESS-01 tinggi Kebocoran | Oli rembes di silinder`';
+        }
+
+        $kodeMesin = (string) array_shift($tokens);
+        $prioritas = mb_strtolower((string) array_shift($tokens));
+        $judul = trim(implode(' ', $tokens));
+
+        if (! in_array($prioritas, MaintenanceTicket::PRIORITIES, true)) {
+            return "❌ Prioritas `{$prioritas}` tidak dikenal.\nGunakan: rendah, sedang, atau tinggi.";
+        }
+
+        if ($judul === '') {
+            return '❌ Judul masalah wajib diisi.';
+        }
+
+        $ticket = app(MaintenanceTicketService::class)->create([
+            'kode_mesin' => $kodeMesin,
+            'judul' => $judul,
+            'deskripsi' => ($desc !== null && trim($desc) !== '') ? trim($desc) : $judul,
+            'prioritas' => $prioritas,
+        ], $user);
+
+        return "✅ *Tiket #{$ticket->id} dibuat*\n\n"
+            ."*Mesin:* {$ticket->kode_mesin}\n"
+            ."*Prioritas:* {$ticket->priorityLabel()}\n"
+            ."*Status:* {$ticket->statusLabel()}\n\n"
+            .'_Departemen maintenance telah diberi tahu._';
+    }
+
+    /**
+     * /tiket_update ID status [catatan] — ubah status tiket (asisten ke atas).
+     */
+    protected function updateTicketFromBot(User $user, string $body): string
+    {
+        if (! in_array($user->role, ['asisten', 'askep', 'manager', 'developer'], true)) {
+            return "🔒 *Akses Ditolak*\n\nHanya asisten ke atas yang dapat mengubah status tiket.";
+        }
+
+        $tokens = preg_split('/\s+/', trim($body)) ?: [];
+
+        if (count($tokens) < 2) {
+            return "❌ *Format:* `/tiket_update <id> <status> [catatan]`\n"
+                .'Status: open | dikerjakan | selesai';
+        }
+
+        $id = (int) array_shift($tokens);
+        $status = mb_strtolower((string) array_shift($tokens));
+        $note = trim(implode(' ', $tokens));
+
+        if (! in_array($status, MaintenanceTicket::STATUSES, true)) {
+            return "❌ Status `{$status}` tidak dikenal.\nGunakan: open, dikerjakan, atau selesai.";
+        }
+
+        $ticket = MaintenanceTicket::forPlant($user->plant_id)->find($id);
+
+        if (! $ticket) {
+            return "❌ Tiket #{$id} tidak ditemukan di pabrik Anda.";
+        }
+
+        app(MaintenanceTicketService::class)->changeStatus($ticket, $status, $note !== '' ? $note : null);
+
+        return "✅ *Tiket #{$id} diperbarui*\n\n"
+            ."*Mesin:* {$ticket->kode_mesin}\n"
+            ."*Status:* {$ticket->statusLabel()}";
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\KpiTargetService;
 use App\Services\StationAnalyticsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class KpiTargetManagementTest extends TestCase
@@ -141,5 +142,76 @@ class KpiTargetManagementTest extends TestCase
         $overridden = collect(app(StationAnalyticsService::class)->targetProgress('PKS_01', 'lab', now()->subDay()->startOfDay(), now()->endOfDay()))
             ->firstWhere('key', 'kadar_alb_cpo');
         $this->assertFalse($overridden['achieved']);
+    }
+
+    public function test_plant_wide_section_is_visible_and_updatable(): void
+    {
+        $manager = $this->makeUser('manager', '628800000009');
+
+        $this->actingAs($manager)
+            ->get('/settings/kpi-targets')
+            ->assertOk()
+            ->assertSee('KPI Plant-Wide')
+            ->assertSee('_plant');
+
+        $this->actingAs($manager)->put('/settings/kpi-targets', [
+            'targets' => [
+                '_plant' => [
+                    'efficiency' => ['direction' => 'higher', 'min' => '80'],
+                ],
+            ],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('kpi_targets', [
+            'plant_id' => 'PKS_01',
+            'station' => '_plant',
+            'parameter' => 'efficiency',
+            'direction' => 'higher',
+        ]);
+        $this->assertSame(80.0, app(KpiTargetService::class)->plantTargets('PKS_01')['efficiency']['min']);
+    }
+
+    public function test_export_returns_csv_with_effective_targets(): void
+    {
+        $manager = $this->makeUser('manager', '628800000010');
+
+        $response = $this->actingAs($manager)->get('/settings/kpi-targets/export');
+
+        $response->assertOk();
+        $csv = $response->streamedContent();
+        $this->assertStringContainsString('station,parameter,direction', $csv);
+        $this->assertStringContainsString('kadar_alb_cpo', $csv);
+        $this->assertStringContainsString('_plant,efficiency', $csv);
+        $this->assertStringContainsString('default', $csv);
+    }
+
+    public function test_import_upserts_known_targets_and_skips_unknown(): void
+    {
+        $manager = $this->makeUser('manager', '628800000011');
+
+        $csv = "station,parameter,direction,min_value,max_value,unit,label,source\n"
+            ."lab,kadar_alb_cpo,lower,,4.2,%,FFA,override\n"
+            ."_plant,efficiency,higher,80,,/100,Skor,override\n"
+            ."unknown,foo,lower,,1,,,\n";
+
+        $file = UploadedFile::fake()->createWithContent('targets.csv', $csv);
+
+        $this->actingAs($manager)
+            ->post('/settings/kpi-targets/import', ['file' => $file])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('kpi_targets', [
+            'station' => 'lab',
+            'parameter' => 'kadar_alb_cpo',
+            'max_value' => 4.2,
+        ]);
+        $this->assertDatabaseHas('kpi_targets', [
+            'station' => '_plant',
+            'parameter' => 'efficiency',
+            'min_value' => 80,
+        ]);
+        $this->assertDatabaseMissing('kpi_targets', ['station' => 'unknown']);
+
+        $this->assertSame(4.2, app(KpiTargetService::class)->stationTargets('PKS_01', 'lab')['kadar_alb_cpo']['max']);
     }
 }

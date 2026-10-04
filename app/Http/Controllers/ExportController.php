@@ -7,6 +7,7 @@ use App\Models\LogLab;
 use App\Models\LogPress;
 use App\Models\LogSterilizer;
 use App\Models\LogTimbang;
+use App\Models\MaintenanceTicket;
 use App\Services\CommandCenterService;
 use App\Services\StationAnalyticsService;
 use App\Services\ValidationService;
@@ -169,6 +170,64 @@ class ExportController extends Controller
             ->setOption(['isPhpEnabled' => true, 'defaultFont' => 'Arial']);
 
         $filename = "command_center_{$user->plant_id}_".now()->format('Ymd_His').'.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * B3 — Laporan tiket maintenance per mesin (arsip workshop).
+     *
+     * Filter opsional: `kode_mesin` (riwayat satu mesin) dan `status`.
+     * Tanpa filter, seluruh tiket plant dicetak dengan ringkasan per mesin.
+     */
+    public function maintenanceTicketsPdf(Request $request)
+    {
+        $validated = $request->validate([
+            'kode_mesin' => ['nullable', 'string', 'max:50'],
+            'status' => ['nullable', 'in:open,dikerjakan,selesai'],
+        ]);
+
+        $user = auth()->user();
+        $kodeMesin = trim((string) ($validated['kode_mesin'] ?? ''));
+        $status = $validated['status'] ?? null;
+
+        $query = MaintenanceTicket::forPlant($user->plant_id)
+            ->with(['reporter:id,name', 'assignee:id,name'])
+            // Urutkan status (open dulu) secara portable (hindari FIELD() MySQL).
+            ->orderByRaw("case status when 'open' then 0 when 'dikerjakan' then 1 else 2 end")
+            ->orderByDesc('id');
+
+        if ($kodeMesin !== '') {
+            $query->where('kode_mesin', 'like', "%{$kodeMesin}%");
+        }
+
+        if ($status !== null && $status !== '') {
+            $query->where('status', $status);
+        }
+
+        $tickets = $query->get();
+
+        // Ringkasan per mesin (arsip workshop).
+        $perMachine = $tickets->groupBy('kode_mesin')->map(fn ($group) => [
+            'total' => $group->count(),
+            'open' => $group->where('status', 'open')->count(),
+            'dikerjakan' => $group->where('status', 'dikerjakan')->count(),
+            'selesai' => $group->where('status', 'selesai')->count(),
+        ]);
+
+        $pdf = Pdf::loadView('exports.maintenance-tickets-pdf', [
+            'tickets' => $tickets,
+            'perMachine' => $perMachine,
+            'kodeMesin' => $kodeMesin,
+            'statusFilter' => $status,
+            'plant' => $user->plant_id,
+            'preparedBy' => $user->name,
+        ])
+            ->setPaper(config('export.paper_size', env('EXPORT_PAPER_SIZE', 'a4')), 'portrait')
+            ->setOption(['isPhpEnabled' => true, 'defaultFont' => 'Arial']);
+
+        $slug = $kodeMesin !== '' ? preg_replace('/[^A-Za-z0-9_-]+/', '_', $kodeMesin) : 'semua-mesin';
+        $filename = "tiket_maintenance_{$slug}_{$user->plant_id}_".now()->format('Ymd_His').'.pdf';
 
         return $pdf->download($filename);
     }

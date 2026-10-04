@@ -6,6 +6,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\HQSyncMonitorController;
 use App\Http\Controllers\KpiTargetController;
 use App\Http\Controllers\LogInputController;
+use App\Http\Controllers\MaintenanceTicketController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StationController;
@@ -165,6 +166,16 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
         ->name('flagged.records')
         ->middleware('can:view-flagged-records');
 
+    // B3 — Tiket Maintenance (laporan kerusakan -> open/dikerjakan/selesai)
+    Route::prefix('maintenance')->name('maintenance.')->group(function () {
+        Route::get('/tickets', [MaintenanceTicketController::class, 'index'])
+            ->name('tickets')->middleware('can:view-maintenance');
+        Route::post('/tickets', [MaintenanceTicketController::class, 'store'])
+            ->name('tickets.store')->middleware('can:report-maintenance');
+        Route::put('/tickets/{ticket}', [MaintenanceTicketController::class, 'update'])
+            ->name('tickets.update')->middleware('can:manage-maintenance');
+    });
+
     // Export functionality
     Route::middleware('can:export-data')->prefix('export')->name('export.')->group(function () {
         Route::get('/pdf/{station}', [ExportController::class, 'pdf'])->name('pdf');
@@ -179,6 +190,10 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
         // Laporan Command Center (KPI + target + status stasiun + tren 7 hari).
         Route::get('/command-center', [ExportController::class, 'commandCenterPdf'])
             ->name('command-center');
+
+        // B3 — Laporan tiket maintenance per mesin (arsip workshop).
+        Route::get('/maintenance-tickets', [ExportController::class, 'maintenanceTicketsPdf'])
+            ->name('maintenance-tickets');
     });
 
     // Validation Rules Management
@@ -191,6 +206,8 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
     Route::middleware('can:edit-kpi-targets')->prefix('settings')->name('settings.')->group(function () {
         Route::get('/kpi-targets', [KpiTargetController::class, 'index'])->name('kpi-targets');
         Route::put('/kpi-targets', [KpiTargetController::class, 'update'])->name('kpi-targets.update');
+        Route::get('/kpi-targets/export', [KpiTargetController::class, 'export'])->name('kpi-targets.export');
+        Route::post('/kpi-targets/import', [KpiTargetController::class, 'import'])->name('kpi-targets.import');
     });
 
     // HQ Sync Monitoring + Environment editor (developer only)

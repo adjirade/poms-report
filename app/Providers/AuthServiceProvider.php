@@ -101,5 +101,20 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('edit-kpi-targets', function (User $user) {
             return in_array($user->role, ['manager', 'developer']);
         });
+
+        // Lihat daftar tiket maintenance (B3)
+        Gate::define('view-maintenance', function (User $user) {
+            return in_array($user->role, ['asisten', 'askep', 'manager', 'hq_admin', 'developer'], true);
+        });
+
+        // Buat laporan kerusakan / tiket baru (B3)
+        Gate::define('report-maintenance', function (User $user) {
+            return in_array($user->role, ['operator', 'asisten', 'askep', 'manager', 'developer'], true);
+        });
+
+        // Ubah status tiket (open -> dikerjakan -> selesai) + penugasan teknisi (B3)
+        Gate::define('manage-maintenance', function (User $user) {
+            return in_array($user->role, ['asisten', 'askep', 'manager', 'developer'], true);
+        });
     }
 }

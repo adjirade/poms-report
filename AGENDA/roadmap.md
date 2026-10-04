@@ -40,8 +40,9 @@
 - ✅ A3 Analisis per shift — halaman performa stasiun + PDF.
 - ✅ A4 Statistik penyebab flagged.
 - ✅ A5 Tren + deteksi anomali — moving average 7 hari (garis putus-putus) + penanda hari anomali (>2σ) di chart Performa Stasiun, ringkasan & tabel anomali di web + PDF.
-- ✅ A6 Target vs Realisasi — progress bar di Command Center & Performa Stasiun + PDF; target per stasiun kini **dapat diedit lewat UI** (Sistem → Target KPI, role manager) dan disimpan di tabel `kpi_targets`.
+- ✅ A6 Target vs Realisasi — progress bar di Command Center & Performa Stasiun + PDF; target per stasiun kini **dapat diedit lewat UI** (Sistem → Target KPI, role manager) dan disimpan di tabel `kpi_targets`. Termasuk **import/export CSV** dan editor **target KPI plant-wide** (`_plant`).
 - ✅ B1 Kalkulator pabrik.
 - ✅ B4 Laporan terjadwal PDF ke Telegram.
+- ✅ B3 Tiket maintenance — laporan kerusakan → tiket (open → dikerjakan → selesai), notifikasi Telegram ke departemen maintenance & pelapor, riwayat per mesin (`maintenance/tickets`), pelaporan & ubah status via bot (`/tiket`, `/tiket_update`), serta arsip PDF per mesin (`export.maintenance-tickets`).
 - 🆕 Environment Editor (role developer) — `settings/environment`: ubah token bot/API/username/identitas pabrik lewat UI + uji koneksi bot (`getMe`).
-- Berikutnya: B3 (tiket maintenance) → B5 (dry-run validation) → B2 (approval multi-level).
+- Berikutnya: B5 (dry-run validation) → B2 (approval multi-level).
