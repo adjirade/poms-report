@@ -133,6 +133,53 @@
         </div>
     </div>
 
+    <!-- Analisis per shift -->
+    <div class="card card-pad">
+        <h2 class="mb-4 text-lg font-bold text-gray-800">
+            <i class="fas fa-layer-group text-amber-600 mr-2"></i>
+            Analisis per Shift — {{ $stationTitle }} ({{ $range }} hari)
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="glass-table w-full text-left text-sm">
+                <caption class="sr-only">Perbandingan performa per shift</caption>
+                <thead>
+                    <tr class="border-b border-white/40">
+                        <th scope="col" class="px-3 py-2.5">Shift</th>
+                        <th scope="col" class="px-3 py-2.5">Jam Kerja</th>
+                        <th scope="col" class="px-3 py-2.5">Record</th>
+                        <th scope="col" class="px-3 py-2.5">Flagged</th>
+                        @foreach($chart['series'] as $s)
+                            <th scope="col" class="px-3 py-2.5">{{ $s['label'] }}@if($s['unit']) ({{ $s['unit'] }})@endif</th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($shiftBreakdown as $shift)
+                    <tr class="border-b border-white/30">
+                        <td class="whitespace-nowrap px-3 py-2.5 font-semibold text-gray-800">{{ $shift['label'] }}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-gray-500">{{ $shift['hours'] }}</td>
+                        <td class="px-3 py-2.5 font-medium text-gray-800">{{ number_format($shift['total']) }}</td>
+                        <td class="px-3 py-2.5">
+                            @if($shift['flagged'] > 0)
+                                <span class="badge border-rose-200 bg-rose-100 text-rose-800">🚩 {{ $shift['flagged'] }}</span>
+                            @else
+                                <span class="text-gray-500">0</span>
+                            @endif
+                        </td>
+                        @foreach($chart['series'] as $s)
+                            <td class="px-3 py-2.5 text-gray-800">
+                                {{ $shift['avg'][$s['key']] !== null ? number_format($shift['avg'][$s['key']], 2) : '—' }}
+                            </td>
+                        @endforeach
+                    </tr>
+                    @empty
+                    <tr><td colspan="{{ 4 + count($chart['series']) }}" class="px-3 py-8 text-center text-gray-500">Belum ada data pada rentang ini.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Tabel detail -->
     <div class="card card-pad">
         <h2 class="mb-4 text-lg font-bold text-gray-800">

@@ -96,6 +96,13 @@
             </a>
             @endcan
 
+            {{-- Kalkulator operasional (semua user web) --}}
+            <a href="{{ route('tools.kalkulator') }}"
+               class="flex items-center space-x-3 p-2.5 rounded-lg transition {{ request()->routeIs('tools.*') ? $activeNav : $idleNav }}">
+                <i class="fas fa-calculator w-5 text-center"></i>
+                <span x-show="mobileOpen || !collapsed" x-cloak class="text-sm">Kalkulator</span>
+            </a>
+
             {{-- Dashboard (butuh akses web; operator tidak) --}}
             @can('access-web')
             <a href="{{ route('dashboard') }}"
@@ -164,6 +171,7 @@
                     <i x-show="mobileOpen || !collapsed" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'" class="fas text-[10px]"></i>
                 </button>
                 <div x-show="open && (mobileOpen || !collapsed)" x-cloak class="ml-5 mt-1 space-y-0.5 border-l border-white/20 pl-2">
+                    <a href="{{ route('analytics.command-center') }}" class="block rounded-lg p-2 text-sm {{ request()->routeIs('analytics.command-center') ? 'bg-white/[0.16] font-semibold text-white' : 'text-emerald-100/80 hover:bg-white/10' }}">Command Center</a>
                     <a href="{{ route('analytics.overview') }}" class="block rounded-lg p-2 text-sm {{ request()->routeIs('analytics.overview') ? 'bg-white/[0.16] font-semibold text-white' : 'text-emerald-100/80 hover:bg-white/10' }}">Overview</a>
                     <a href="{{ route('analytics.losses') }}" class="block rounded-lg p-2 text-sm {{ request()->routeIs('analytics.losses') ? 'bg-white/[0.16] font-semibold text-white' : 'text-emerald-100/80 hover:bg-white/10' }}">Losses</a>
                     <a href="{{ route('analytics.efficiency') }}" class="block rounded-lg p-2 text-sm {{ request()->routeIs('analytics.efficiency') ? 'bg-white/[0.16] font-semibold text-white' : 'text-emerald-100/80 hover:bg-white/10' }}">Efficiency</a>

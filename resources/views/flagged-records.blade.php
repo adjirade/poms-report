@@ -26,6 +26,53 @@
         </div>
     </div>
 
+    <!-- Statistik Flagged -->
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div class="card card-pad">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Flagged</p>
+            <p class="mt-1 text-2xl font-bold text-gray-800">{{ number_format($flagStats['total']) }}</p>
+        </div>
+        <div class="card card-pad">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">⏱ Selisih Waktu ({{ config('poms.time_discrepancy_hours') }} jam+)</p>
+            <p class="mt-1 text-2xl font-bold text-rose-700">{{ number_format($flagStats['time_based']) }}</p>
+        </div>
+        <div class="card card-pad">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">⚠ Parameter di Luar Rule</p>
+            <p class="mt-1 text-2xl font-bold text-amber-700">{{ number_format($flagStats['rule_based']) }}</p>
+        </div>
+        <div class="card card-pad">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">⌛ Belum Diverifikasi</p>
+            <p class="mt-1 text-2xl font-bold text-orange-700">{{ number_format($flagStats['unverified']) }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="card card-pad">
+            <h2 class="mb-4 text-lg font-bold text-gray-800">
+                <i class="fas fa-chart-column text-rose-600 mr-2"></i>
+                Flag 14 Hari Terakhir
+            </h2>
+            <div class="relative" style="height: 220px;">
+                <canvas id="flagPerDayChart" role="img" aria-label="Grafik batang jumlah flagged per hari"></canvas>
+            </div>
+        </div>
+        <div class="card card-pad">
+            <h2 class="mb-4 text-lg font-bold text-gray-800">
+                <i class="fas fa-chart-pie text-purple-600 mr-2"></i>
+                Sebaran per Stasiun
+            </h2>
+            <div class="flex flex-wrap gap-2">
+                @forelse($flagStats['per_station'] as $stationKey => $count)
+                <span class="chip !border-rose-200 !bg-rose-50 text-rose-800">
+                    {{ ucfirst($stationKey) }} <strong class="ml-1">{{ $count }}</strong>
+                </span>
+                @empty
+                <p class="text-sm text-gray-500">Tidak ada flagged pada filter ini.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
     <!-- Filters -->
     <div class="card card-pad">
         <form method="GET" action="{{ route('flagged.records') }}" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -169,3 +216,37 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof Chart === 'undefined') { return; }
+    const el = document.getElementById('flagPerDayChart');
+    if (!el) { return; }
+    const data = @json($flagStats['per_day']);
+    new Chart(el, {
+        type: 'bar',
+        data: {
+            labels: data.map((d) => d.label),
+            datasets: [{
+                label: 'Flagged',
+                data: data.map((d) => d.total),
+                backgroundColor: 'rgba(244, 63, 94, 0.65)',
+                borderColor: '#f43f5e',
+                borderWidth: 1,
+                borderRadius: 4,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } },
+                x: { grid: { display: false } },
+            },
+        },
+    });
+});
+</script>
+@endpush

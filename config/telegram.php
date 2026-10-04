@@ -97,4 +97,20 @@ return [
         'enabled' => env('TELEGRAM_NOTIF_ENABLED', true),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Rekap Otomatis (telegram:daily-recap)
+    |--------------------------------------------------------------------------
+    |
+    | Saklar global + daftar chat_id tambahan (dipisah koma) untuk grup/arsip.
+    | Penerima personal: user dengan role >= asisten, terhubung bot, dan
+    | telegram_notif_enabled = true.
+    |
+    */
+
+    'recap' => [
+        'enabled' => env('TELEGRAM_RECAP_ENABLED', true),
+        'chat_ids' => env('TELEGRAM_RECAP_CHAT_IDS', ''),
+    ],
+
 ];

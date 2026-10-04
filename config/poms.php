@@ -27,6 +27,14 @@ return [
     // record otomatis di-flag sebagai anomali waktu.
     'time_discrepancy_hours' => env('VALIDATION_TIME_DISCREPANCY_HOURS', 4),
 
+    // Jam kerja shift untuk analisis per-shift (end melewati start = shift
+    // lintas tengah malam). Jam end eksklusif, start inklusif.
+    'shifts' => [
+        'Shift 1' => ['start' => '06:00', 'end' => '14:00'],
+        'Shift 2' => ['start' => '14:00', 'end' => '22:00'],
+        'Shift 3' => ['start' => '22:00', 'end' => '06:00'],
+    ],
+
     // Password akun bootstrap dari `php artisan db:seed`. Kosong = generator
     // acak (dicetak SEKALI ke console). Jangan hardcode di repo.
     'bootstrap_admin_password' => env('ADMIN_INITIAL_PASSWORD', ''),

@@ -154,6 +154,12 @@ class StationChartConfig
         return array_keys(self::STATIONS);
     }
 
+    /** Judul tampilan semua stasiun, key => title. */
+    public static function titles(): array
+    {
+        return array_map(fn (array $s) => $s['title'], self::STATIONS);
+    }
+
     /**
      * Series chart untuk satu stasiun, lengkap dengan warna per series.
      *

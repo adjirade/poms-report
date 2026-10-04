@@ -131,6 +131,65 @@ class StationAnalyticsService
     }
 
     /**
+     * Breakdown per shift untuk satu stasiun pada rentang waktu — tabel
+     * "Analisis per Shift" di halaman performa stasiun.
+     *
+     * Jam shift diambil dari config('poms.shifts'); shift dengan end < start
+     * dianggap melewati tengah malam (OR dua rentang jam).
+     *
+     * @return array<int, array{label: string, hours: string, total: int, flagged: int, avg: array<string, ?float>}>
+     */
+    public function shiftBreakdown(string $plantId, string $station, Carbon $since, Carbon $until): array
+    {
+        $config = StationChartConfig::series($station);
+        $modelClass = app(ValidationService::class)->getStationModel($station);
+
+        $selects = [
+            'COUNT(*) as total',
+            'SUM(CASE WHEN is_flagged THEN 1 ELSE 0 END) as flagged',
+        ];
+        foreach ($config as $s) {
+            $selects[] = "AVG({$s['key']}) as v_{$s['key']}";
+        }
+
+        $result = [];
+        foreach (config('poms.shifts', []) as $label => $hours) {
+            $query = $modelClass::query()
+                ->where('plant_id', $plantId)
+                ->whereBetween('timestamp_kirim', [$since->copy(), $until->copy()]);
+
+            if ($hours['start'] <= $hours['end']) {
+                $query->whereTime('timestamp_kirim', '>=', $hours['start'])
+                    ->whereTime('timestamp_kirim', '<', $hours['end']);
+            } else {
+                // Shift lintas tengah malam (mis. 22:00 – 06:00).
+                $query->where(function ($q) use ($hours) {
+                    $q->whereTime('timestamp_kirim', '>=', $hours['start'])
+                        ->orWhereTime('timestamp_kirim', '<', $hours['end']);
+                });
+            }
+
+            $row = $query->selectRaw(implode(', ', $selects))->first();
+
+            $avg = [];
+            foreach ($config as $s) {
+                $val = $row?->{"v_{$s['key']}"};
+                $avg[$s['key']] = $val !== null ? round((float) $val, 2) : null;
+            }
+
+            $result[] = [
+                'label' => $label,
+                'hours' => $hours['start'].' – '.$hours['end'],
+                'total' => (int) ($row->total ?? 0),
+                'flagged' => (int) ($row->flagged ?? 0),
+                'avg' => $avg,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * Breakdown status verifikasi record pada rentang waktu — untuk chart
      * doughnut di halaman performa stasiun.
      *

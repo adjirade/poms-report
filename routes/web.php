@@ -124,6 +124,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/telegram-notifications', [ProfileController::class, 'updateTelegramPreferences'])
         ->name('profile.telegram-notifications');
 
+    // Tools operasional (semua user web, termasuk operator)
+    Route::get('/tools/kalkulator', fn () => view('tools.kalkulator'))->name('tools.kalkulator');
+
     // Input data laporan (operator & role lain)
     Route::middleware('can:submit-data')->prefix('input')->name('input.')->group(function () {
         Route::get('/', [LogInputController::class, 'index'])->name('index');
@@ -191,6 +194,7 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
 
     // Analytics (Askep and above)
     Route::middleware('can:access-full-dashboard')->prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/command-center', [DashboardController::class, 'commandCenter'])->name('command-center');
         Route::get('/overview', [DashboardController::class, 'analytics'])->name('overview');
         Route::get('/losses', [DashboardController::class, 'losses'])->name('losses');
         Route::get('/efficiency', [DashboardController::class, 'efficiency'])->name('efficiency');

@@ -28,3 +28,22 @@ Schedule::command('hq:sync')
     ->onFailure(function () {
         Log::error('Scheduled HQ sync failed.');
     });
+
+/*
+|--------------------------------------------------------------------------
+| Schedule — Rekap Harian Telegram (AGENDA/roadmap.md A2+B4)
+|--------------------------------------------------------------------------
+|
+| Rekap kemarin (teks + PDF) dikirim pukul 17:30 WIB ke pengelola pabrik.
+| Nonaktifkan lewat TELEGRAM_RECAP_ENABLED=false.
+|
+*/
+
+Schedule::command('telegram:daily-recap')
+    ->dailyAt('17:30')
+    ->name('telegram-daily-recap')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        Log::error('Scheduled Telegram daily recap failed.');
+    });

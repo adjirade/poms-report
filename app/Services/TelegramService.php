@@ -172,6 +172,45 @@ class TelegramService
     }
 
     /**
+     * Kirim dokumen (mis. laporan PDF) ke chat.
+     *
+     * @param  string  $chatId  ID chat penerima
+     * @param  string  $content  Isi file (binary/string)
+     * @param  string  $filename  Nama file yang tampil di Telegram
+     * @param  string|null  $caption  Keterangan opsional di atas file
+     */
+    public function sendDocument(string $chatId, string $content, string $filename, ?string $caption = null): bool
+    {
+        try {
+            $response = Http::asMultipart()
+                ->attach('document', $content, $filename)
+                ->post("{$this->apiUrl}/sendDocument", array_filter([
+                    'chat_id' => $chatId,
+                    'caption' => $caption,
+                ]));
+
+            if ($response->successful()) {
+                return true;
+            }
+
+            Log::error('Telegram sendDocument failed', [
+                'chat_id' => $chatId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return false;
+        } catch (\Exception $e) {
+            Log::error('Telegram sendDocument exception', [
+                'chat_id' => $chatId,
+                'message' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
      * Get bot information
      */
     public function getMe(): ?array
