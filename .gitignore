@@ -35,3 +35,5 @@ bootstrap/cache/*.php
 
 # Hasil audit UI (artifact CI / lokal)
 scripts/ui-audit/results/
+/storage/backups/
+scripts/deploy/nssm.exe

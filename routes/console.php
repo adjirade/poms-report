@@ -67,3 +67,22 @@ Schedule::command('telegram:weekly-recap')
     ->onFailure(function () {
         Log::error('Scheduled Telegram weekly recap failed.');
     });
+
+/*
+|--------------------------------------------------------------------------
+| Schedule — Backup Database Harian (poms:backup)
+|--------------------------------------------------------------------------
+|
+| pg_dump database + arsip PDF rekap ke storage/backups, retensi 14 hari.
+| Butuh pg_dump di PATH (PostgreSQL\18\bin).
+|
+*/
+
+Schedule::command('poms:backup')
+    ->dailyAt('01:00')
+    ->name('poms-daily-backup')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        Log::error('Scheduled POMS backup failed.');
+    });
