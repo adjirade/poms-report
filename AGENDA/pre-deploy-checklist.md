@@ -104,4 +104,5 @@ emerald POMS untuk mengelola 4 layanan NSSM dari satu jendela:
 - **Log realtime**: tab Aktivitas/Queue/Scheduler/Poller/Web/Laravel (tail 1,2 dtk, baris ERROR merah, cap 1200 baris).
 - Hak akses: kontrol layanan butuh Administrator — aplikasi menawarkan elevasi UAC saat dibuka; tanpa admin jadi mode monitor (aksi per klik tetap bisa via UAC).
 - Uji tanpa GUI: `python scripts/deploy/poms-manager.py --selftest` (status layanan, path, web, fingerprint) atau `--smoke`.
+- **Launcher**: `scripts/deploy/poms-manager.bat` — double-click → UAC sekali → GUI langsung Administrator via `pythonw.exe` (tanpa console). Deteksi pythonw dari `where python` (skip WindowsApps stub); mode uji: `set POMS_DRYRUN=1`. Shortcut desktop **POMS Manager** (icon shield) sudah dibuat menunjuk ke bat ini.
 
