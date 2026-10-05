@@ -37,3 +37,4 @@ bootstrap/cache/*.php
 scripts/ui-audit/results/
 /storage/backups/
 scripts/deploy/nssm.exe
+__pycache__/
