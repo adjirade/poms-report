@@ -92,3 +92,16 @@ Layanan auto-start saat boot, auto-restart bila crash, log rotasi di `storage/lo
 - Path aplikasi ber-spasi → semua layanan memakai junction `D:\poms-app`.
 - Matikan aplikasi sementara: `nssm stop poms-web` dst.; hapus: `nssm remove <nama> confirm`.
 
+## Alat operasional: POMS Service Manager (GUI) — 2026-10-05
+
+`scripts/deploy/poms-manager.py` — 1 file Python (tkinter bawaan, tanpa `pip install`) bertema
+emerald POMS untuk mengelola 4 layanan NSSM dari satu jendela:
+
+- **Launcher adaptif**: saat dibuka, layanan yang mati otomatis dinyalakan; PID + status tiap layanan tampil realtime.
+- **Watchdog auto-restart**: layanan yang mati tanpa perintah user di-start ulang (konfirmasi 2 siklus, cooldown 30 dtk); user-stop lewat GUI tidak akan di-restart.
+- **Web watchdog**: probe `APP_URL` tiap siklus; gagal 3× → bersihkan proses `php -S` zombie (parent mati); gagal 7× → restart `poms-web` (cooldown 120 dtk).
+- **Auto-optimize**: perubahan `.env`/`app`/`config`/`routes`/`resources/views`/migrations → debounce 4 dtk → `config:clear` + `optimize` → restart queue+poll+schedule (web ikut bila `.env` berubah). Migrasi/composer hanya diberi peringatan, TIDAK dieksekusi otomatis.
+- **Log realtime**: tab Aktivitas/Queue/Scheduler/Poller/Web/Laravel (tail 1,2 dtk, baris ERROR merah, cap 1200 baris).
+- Hak akses: kontrol layanan butuh Administrator — aplikasi menawarkan elevasi UAC saat dibuka; tanpa admin jadi mode monitor (aksi per klik tetap bisa via UAC).
+- Uji tanpa GUI: `python scripts/deploy/poms-manager.py --selftest` (status layanan, path, web, fingerprint) atau `--smoke`.
+
