@@ -53,7 +53,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                        <td colspan="4" class="px-6 py-12 text-center text-gray-600">
                             <i class="fas fa-inbox text-4xl mb-2"></i>
                             <p>Tidak ada data perbandingan</p>
                         </td>

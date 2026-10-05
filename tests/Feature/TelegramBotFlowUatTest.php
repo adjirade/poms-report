@@ -139,19 +139,24 @@ class TelegramBotFlowUatTest extends TestCase
             'telegram_user_id' => '888001',
         ]);
 
-        // Bot menyambut dengan menu utama.
+        // Bot menyambut (pesan 1) LALU menampilkan menu (pesan 2, terakhir).
+        $texts = collect($this->botRequests())->map(fn ($req) => (string) ($req['text'] ?? ''));
+        $this->assertTrue($texts->contains(fn ($t) => str_contains($t, 'Selamat datang di POMS Bot')));
+
         $text = $this->lastBotText();
-        $this->assertStringContainsString('Selamat datang di POMS Bot', $text);
-        $this->assertStringContainsString('pilih menu di keyboard bawah', $text);
+        $this->assertStringContainsString('Menu POMS', $text);
+        $this->assertStringContainsString('Pilih menu di keyboard bawah', $text);
         $this->assertSame('📊 Ringkasan', $this->lastReplyMarkup()['keyboard'][0][0]['text']);
     }
 
     // ------------------------------------------------------------------
     // 3. Menu: /ringkasan, tombol keyboard, /flagged, /status, /bantuan
+    //    (dipakai role ASISTEN karena /flagged kini asisten+; operator
+    //    ditolak — diuji di test 3b)
     // ------------------------------------------------------------------
     public function test_uat_3_menu_and_queries_respond(): void
     {
-        $this->makeUser(['telegram_user_id' => '888001']);
+        $this->makeUser(['telegram_user_id' => '888001', 'role' => 'asisten']);
 
         // /ringkasan
         $this->handle($this->update('/ringkasan'));
@@ -177,6 +182,29 @@ class TelegramBotFlowUatTest extends TestCase
         // /menu — ulangi menu.
         $this->handle($this->update('/menu'));
         $this->assertStringContainsString('Menu POMS', $this->lastBotText());
+    }
+
+    // ------------------------------------------------------------------
+    // 3b. OPERATOR tidak boleh /flagged & /kpi (RBAC bot), tapi tetap bisa
+    //     /ringkasan, /status, dan /siapa (kartu identitas).
+    // ------------------------------------------------------------------
+    public function test_uat_3b_operator_denied_flagged_and_kpi(): void
+    {
+        $this->makeUser(['telegram_user_id' => '888001']);
+
+        $this->handle($this->update('/flagged'));
+        $this->assertStringContainsString('Akses Ditolak', $this->lastBotText());
+
+        $this->handle($this->update('/kpi'));
+        $this->assertStringContainsString('Akses Ditolak', $this->lastBotText());
+
+        $this->handle($this->update('/pdf_rekap'));
+        $this->assertStringContainsString('Akses Ditolak', $this->lastBotText());
+
+        // /siapa tersedia untuk semua role.
+        $this->handle($this->update('/siapa'));
+        $this->assertStringContainsString('KARTU IDENTITAS POMS', $this->lastBotText());
+        $this->assertStringContainsString('Operator', $this->lastBotText());
     }
 
     // ------------------------------------------------------------------

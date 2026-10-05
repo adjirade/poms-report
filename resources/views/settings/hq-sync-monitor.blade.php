@@ -20,7 +20,7 @@
         <form method="POST" action="{{ route('settings.hq-sync.run') }}">
             @csrf
             <button type="submit" {{ config('hq.enabled') ? '' : 'disabled' }}
-                    class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl px-4 py-2 font-semibold text-white transition sm:w-auto {{ config('hq.enabled') ? 'bg-gradient-to-br from-emerald-500 to-green-700 shadow-float hover:brightness-105 active:scale-[0.98]' : 'cursor-not-allowed bg-gray-300' }}">
+                    class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl px-4 py-2 font-semibold transition sm:w-auto {{ config('hq.enabled') ? 'bg-gradient-to-br from-emerald-600 to-green-700 text-white shadow-float hover:brightness-105 active:scale-[0.98]' : 'cursor-not-allowed bg-gray-200 text-gray-600' }}">
                 <i class="fas fa-sync-alt"></i>Sync Sekarang
             </button>
         </form>
@@ -37,22 +37,22 @@
     <!-- Status cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div class="card card-pad">
-            <p class="text-gray-500 text-sm">Total Record Terkirim</p>
+            <p class="text-gray-600 text-sm">Total Record Terkirim</p>
             <p class="text-3xl font-bold text-green-700">{{ number_format($totals['pushed']) }}</p>
         </div>
         <div class="card card-pad">
-            <p class="text-gray-500 text-sm">Run Gagal</p>
-            <p class="text-3xl font-bold {{ $totals['failed_runs'] > 0 ? 'text-red-600' : 'text-gray-400' }}">
+            <p class="text-gray-600 text-sm">Run Gagal</p>
+            <p class="text-3xl font-bold {{ $totals['failed_runs'] > 0 ? 'text-red-600' : 'text-gray-600' }}">
                 {{ number_format($totals['failed_runs']) }}
             </p>
         </div>
         <div class="card card-pad md:col-span-2">
-            <p class="mb-2 text-sm text-gray-500">Record Pending per Stasiun</p>
+            <p class="mb-2 text-sm text-gray-600">Record Pending per Stasiun</p>
             <div class="grid grid-cols-4 gap-2 text-center">
                 @foreach($pending as $station => $count)
                 <div class="glass-subtle rounded-2xl p-2">
-                    <p class="text-xs text-gray-500">{{ ucfirst($station) }}</p>
-                    <p class="text-lg font-bold {{ $count > 0 ? 'text-amber-700' : 'text-gray-400' }}">{{ $count }}</p>
+                    <p class="text-xs text-gray-600">{{ ucfirst($station) }}</p>
+                    <p class="text-lg font-bold {{ $count > 0 ? 'text-amber-700' : 'text-gray-600' }}">{{ $count }}</p>
                 </div>
                 @endforeach
             </div>
@@ -73,7 +73,7 @@
                 @endif
                 <span class="text-gray-600">{{ $lastRun->message }}</span>
             </div>
-            <span class="text-gray-500">
+            <span class="text-gray-600">
                 {{ $lastRun->started_at ? \Carbon\Carbon::parse($lastRun->started_at)->format('d/m/Y H:i:s') : '-' }}
                 {{ $lastRun->finished_at ? '→ ' . \Carbon\Carbon::parse($lastRun->finished_at)->format('H:i:s') : '' }}
             </span>
@@ -106,7 +106,7 @@
                 <tbody class="divide-y divide-white/40">
                     @forelse($logs as $log)
                     <tr class="{{ $log->status === 'failed' ? 'bg-red-100/40' : '' }}">
-                        <td class="px-6 py-3 text-sm text-gray-500">{{ $log->id }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $log->id }}</td>
                         <td class="px-6 py-3 text-sm text-gray-900">
                             {{ $log->started_at ? \Carbon\Carbon::parse($log->started_at)->format('d/m H:i:s') : '-' }}
                         </td>
@@ -116,12 +116,12 @@
                             </span>
                         </td>
                         <td class="px-6 py-3 text-sm font-semibold text-green-700">{{ $log->records_pushed }}</td>
-                        <td class="px-6 py-3 text-sm {{ $log->records_failed > 0 ? 'text-red-600 font-semibold' : 'text-gray-400' }}">{{ $log->records_failed }}</td>
-                        <td class="px-6 py-3 text-xs text-gray-500 max-w-md truncate" title="{{ $log->message }}">{{ $log->message }}</td>
+                        <td class="px-6 py-3 text-sm {{ $log->records_failed > 0 ? 'text-red-600 font-semibold' : 'text-gray-600' }}">{{ $log->records_failed }}</td>
+                        <td class="px-6 py-3 text-xs text-gray-600 max-w-md truncate" title="{{ $log->message }}">{{ $log->message }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-600">
                             <i class="fas fa-satellite text-4xl mb-2"></i>
                             <p>Belum ada riwayat sinkronisasi</p>
                         </td>

@@ -27,7 +27,7 @@
                         <span class="badge ml-1 border-rose-200 bg-rose-100 text-rose-800">belum ada</span>
                     @endif
                 </p>
-                <p class="mt-1 text-xs text-gray-500">
+                <p class="mt-1 text-xs text-gray-600">
                     Hanya nilai yang ditampilkan di form ini yang dapat diubah. Baris lain di .env tidak disentuh.
                     Key rahasia dikosongkan = tidak diubah.
                 </p>
@@ -72,7 +72,7 @@
             @if(($webhookInfo['result']['last_error_message'] ?? null))
                 <p class="mt-1 text-rose-700">Error terakhir: {{ $webhookInfo['result']['last_error_message'] }}</p>
             @endif
-            <p class="mt-1 text-xs text-gray-500">
+            <p class="mt-1 text-xs text-gray-600">
                 Pending updates: {{ $webhookInfo['result']['pending_update_count'] ?? 0 }}
             </p>
         </div>
@@ -108,7 +108,7 @@
                         $isBool = in_array($key, $booleanKeys, true);
                     @endphp
                     <label class="flex flex-col gap-1.5 text-sm font-medium text-gray-600">
-                        <span class="font-mono text-xs text-gray-500">{{ $key }}</span>
+                        <span class="font-mono text-xs text-gray-600">{{ $key }}</span>
                         @if($isBool)
                             <select name="env[{{ $key }}]" class="input">
                                 <option value="true" {{ strtolower($current) === 'true' ? 'selected' : '' }}>true</option>
@@ -129,7 +129,7 @@
         @endforeach
 
         <div class="flex items-center justify-end gap-3">
-            <span class="text-xs text-gray-500">
+            <span class="text-xs text-gray-700">
                 <i class="fas fa-shield-halved mr-1"></i> Perubahan langsung ditulis ke .env &amp; config cache dibersihkan.
             </span>
             <button type="submit" class="btn-primary">

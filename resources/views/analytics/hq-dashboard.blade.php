@@ -40,7 +40,7 @@
 
                 <div class="flex items-center justify-between text-sm">
                     <span class="text-gray-600"><i class="fas fa-flag mr-1 text-amber-500"></i>Data Flagged</span>
-                    <span class="font-semibold {{ $plant['flagged'] > 0 ? 'text-amber-700' : 'text-gray-400' }}">
+                    <span class="font-semibold {{ $plant['flagged'] > 0 ? 'text-amber-700' : 'text-gray-600' }}">
                         {{ $plant['flagged'] }}
                     </span>
                 </div>
@@ -53,7 +53,7 @@
             </div>
         </div>
         @empty
-        <div class="card col-span-full p-12 text-center text-gray-500">
+        <div class="card col-span-full p-12 text-center text-gray-600">
             <i class="fas fa-industry text-4xl mb-2"></i>
             <p>Belum ada data plant</p>
         </div>

@@ -138,17 +138,21 @@ class TelegramPollCommand extends Command
         // Update the last processed update_id
         $this->lastUpdateId = $update['update_id'];
 
-        // Only process text messages
-        if (! isset($update['message']['text'])) {
+        // Proses pesan teks MAUPUN share-contact: slash command (input data),
+        // teks tombol reply-keyboard menu bot (mis. "📊 Ringkasan"), dan tombol
+        // "Hubungkan Nomor Saya" (contact TANPA teks — tanpa ini penautan akun
+        // via bot tidak pernah jalan).
+        if (! isset($update['message']['text']) && ! isset($update['message']['contact'])) {
             return;
         }
 
         $message = $update['message'];
-        $text = $message['text'];
+        $text = $message['text'] ?? '';
+        $display = $text !== ''
+            ? $text
+            : '[contact: '.($message['contact']['phone_number'] ?? '?').']';
 
-        // Proses SEMUA pesan teks: slash command (input data) maupun teks tombol
-        // reply-keyboard menu bot (mis. "📊 Ringkasan").
-        $this->line("Processing: {$text}");
+        $this->line("Processing: {$display}");
 
         // Dispatch job to queue for processing
         try {

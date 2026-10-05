@@ -47,3 +47,23 @@ Schedule::command('telegram:daily-recap')
     ->onFailure(function () {
         Log::error('Scheduled Telegram daily recap failed.');
     });
+
+/*
+|--------------------------------------------------------------------------
+| Schedule — Rekap Mingguan Telegram
+|--------------------------------------------------------------------------
+|
+| Agregat Senin–Minggu minggu sebelumnya dikirim setiap Senin pukul 07:00
+| WIB. Nonaktifkan lewat TELEGRAM_WEEKLY_RECAP_ENABLED=false (atau master
+| saklar TELEGRAM_RECAP_ENABLED=false).
+|
+*/
+
+Schedule::command('telegram:weekly-recap')
+    ->weeklyOn(1, '07:00')
+    ->name('telegram-weekly-recap')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        Log::error('Scheduled Telegram weekly recap failed.');
+    });

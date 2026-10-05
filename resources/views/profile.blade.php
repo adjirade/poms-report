@@ -20,27 +20,27 @@
         </div>
         <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Nomor Telepon</p>
+                <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold">Nomor Telepon</p>
                 <p class="text-gray-800 font-medium mt-0.5">{{ $user->phone_number }}</p>
             </div>
             <div>
-                <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Departemen</p>
+                <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold">Departemen</p>
                 <p class="text-gray-800 font-medium mt-0.5">{{ $user->department ? ucfirst($user->department) : '—' }}</p>
             </div>
             <div>
-                <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Status Akun</p>
+                <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold">Status Akun</p>
                 <span class="badge mt-1 {{ $user->status === 'active' ? 'border-green-200/70 bg-green-100 text-green-700' : 'border-red-200/70 bg-red-100 text-red-700' }}">
                     <span class="w-1.5 h-1.5 rounded-full {{ $user->status === 'active' ? 'bg-green-500' : 'bg-red-500' }}"></span>
                     {{ ucfirst($user->status) }}
                 </span>
             </div>
             <div>
-                <p class="text-xs uppercase tracking-wide text-gray-400 font-semibold">Telegram</p>
+                <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold">Telegram</p>
                 <p class="text-gray-800 font-medium mt-0.5">
                     @if($user->telegram_user_id)
                         <span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>Terhubung</span>
                     @else
-                        <span class="text-gray-400">Belum terhubung — kirim pesan apa pun ke bot untuk menghubungkan.</span>
+                        <span class="text-gray-600">Belum terhubung — kirim pesan apa pun ke bot untuk menghubungkan.</span>
                     @endif
                 </p>
             </div>
@@ -48,11 +48,11 @@
         <div class="grid grid-cols-2 gap-4 px-6 pb-6">
             <div class="glass-subtle rounded-2xl p-4 text-center">
                 <p class="text-2xl font-bold text-gray-800">{{ number_format($totalSubmitted) }}</p>
-                <p class="text-xs text-gray-500">Total record dikirim</p>
+                <p class="text-xs text-gray-600">Total record dikirim</p>
             </div>
             <div class="glass-subtle rounded-2xl p-4 text-center">
                 <p class="text-2xl font-bold text-gray-800">{{ number_format($totalVerifiedBy) }}</p>
-                <p class="text-xs text-gray-500">Record diverifikasi</p>
+                <p class="text-xs text-gray-600">Record diverifikasi</p>
             </div>
         </div>
     </div>
@@ -61,7 +61,7 @@
     <div class="card" x-data="{ master: {{ $user->telegram_notif_enabled ? 'true' : 'false' }} }">
         <div class="border-b border-white/50 px-6 py-4">
             <h2 class="font-bold text-gray-800"><i class="fab fa-telegram-plane mr-2 text-sky-500"></i>Notifikasi Telegram</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Atur pemberitahuan yang dikirim bot ke Telegram Anda.</p>
+            <p class="text-xs text-gray-600 mt-0.5">Atur pemberitahuan yang dikirim bot ke Telegram Anda.</p>
         </div>
         <form method="POST" action="{{ route('profile.telegram-notifications') }}" class="p-6 space-y-5">
             @csrf
@@ -80,7 +80,7 @@
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <p class="font-semibold text-gray-800">Terima notifikasi</p>
-                    <p class="text-xs text-gray-500">Saklar utama semua notifikasi Telegram. Sama dengan perintah <code class="rounded bg-gray-100 px-1">/notif on</code> di bot.</p>
+                    <p class="text-xs text-gray-600">Saklar utama semua notifikasi Telegram. Sama dengan perintah <code class="rounded bg-gray-100 px-1 text-gray-800">/notif on</code> di bot.</p>
                 </div>
                 <label class="inline-flex shrink-0 cursor-pointer items-center">
                     <input type="hidden" name="telegram_notif_enabled" value="0">
@@ -97,7 +97,7 @@
                 <div class="flex items-center justify-between gap-4">
                     <div>
                         <p class="font-medium text-gray-800">🚩 Data Flagged</p>
-                        <p class="text-xs text-gray-500">Beritahu saat record di departemen Anda terdeteksi anomali. (Asisten)</p>
+                        <p class="text-xs text-gray-600">Beritahu saat record di departemen Anda terdeteksi anomali. (Asisten)</p>
                     </div>
                     <label class="inline-flex shrink-0 cursor-pointer items-center">
                         <input type="hidden" name="telegram_notif_flagged" value="0">
@@ -111,7 +111,7 @@
                 <div class="flex items-center justify-between gap-4">
                     <div>
                         <p class="font-medium text-gray-800">✓ Verifikasi Data</p>
-                        <p class="text-xs text-gray-500">Beritahu Anda saat data yang Anda kirim diverifikasi.</p>
+                        <p class="text-xs text-gray-600">Beritahu Anda saat data yang Anda kirim diverifikasi.</p>
                     </div>
                     <label class="inline-flex shrink-0 cursor-pointer items-center">
                         <input type="hidden" name="telegram_notif_verified" value="0">
@@ -134,7 +134,7 @@
     <div class="card">
         <div class="border-b border-white/50 px-6 py-4">
             <h2 class="font-bold text-gray-800"><i class="fas fa-shield-alt mr-2 text-green-600"></i>Ganti Password</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Gunakan password minimal 8 karakter yang kuat.</p>
+            <p class="text-xs text-gray-600 mt-0.5">Gunakan password minimal 8 karakter yang kuat.</p>
         </div>
         <form method="POST" action="{{ route('profile.password') }}" class="p-6 space-y-4 max-w-md">
             @csrf

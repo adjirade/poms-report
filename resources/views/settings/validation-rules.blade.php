@@ -94,7 +94,7 @@
                                     <i class="fas fa-edit"></i>Edit
                                 </button>
                                 @else
-                                <span class="text-xs text-gray-400">Enum</span>
+                                <span class="text-xs text-gray-600">Enum</span>
                                 @endif
                             </td>
                         </tr>
@@ -123,19 +123,19 @@
             @method('PUT')
             
             <div>
-                <label class="mb-2 block text-sm font-semibold text-gray-700">Parameter Name</label>
+                <label for="paramName" class="mb-2 block text-sm font-semibold text-gray-700">Parameter Name</label>
                 <input type="text" id="paramName" readonly
                        class="input bg-white/50">
             </div>
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="mb-2 block text-sm font-semibold text-gray-700">Min Value</label>
+                    <label for="minValue" class="mb-2 block text-sm font-semibold text-gray-700">Min Value</label>
                     <input type="number" name="min_value" id="minValue" step="0.01" required class="input">
                 </div>
                 
                 <div>
-                    <label class="mb-2 block text-sm font-semibold text-gray-700">Max Value</label>
+                    <label for="maxValue" class="mb-2 block text-sm font-semibold text-gray-700">Max Value</label>
                     <input type="number" name="max_value" id="maxValue" step="0.01" required class="input">
                 </div>
             </div>

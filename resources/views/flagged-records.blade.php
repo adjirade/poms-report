@@ -15,7 +15,7 @@
                 </div>
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">Data Flagged Records</h2>
-                    <p class="mt-1 text-sm text-gray-500">
+                    <p class="mt-1 text-sm text-gray-600">
                         Data dengan selisih waktu &gt; 4 jam yang memerlukan verifikasi
                     </p>
                 </div>
@@ -29,19 +29,19 @@
     <!-- Statistik Flagged -->
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Flagged</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">Total Flagged</p>
             <p class="mt-1 text-2xl font-bold text-gray-800">{{ number_format($flagStats['total']) }}</p>
         </div>
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">⏱ Selisih Waktu ({{ config('poms.time_discrepancy_hours') }} jam+)</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">⏱ Selisih Waktu ({{ config('poms.time_discrepancy_hours') }} jam+)</p>
             <p class="mt-1 text-2xl font-bold text-rose-700">{{ number_format($flagStats['time_based']) }}</p>
         </div>
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">⚠ Parameter di Luar Rule</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">⚠ Parameter di Luar Rule</p>
             <p class="mt-1 text-2xl font-bold text-amber-700">{{ number_format($flagStats['rule_based']) }}</p>
         </div>
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">⌛ Belum Diverifikasi</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">⌛ Belum Diverifikasi</p>
             <p class="mt-1 text-2xl font-bold text-orange-700">{{ number_format($flagStats['unverified']) }}</p>
         </div>
     </div>
@@ -67,7 +67,7 @@
                     {{ ucfirst($stationKey) }} <strong class="ml-1">{{ $count }}</strong>
                 </span>
                 @empty
-                <p class="text-sm text-gray-500">Tidak ada flagged pada filter ini.</p>
+                <p class="text-sm text-gray-600">Tidak ada flagged pada filter ini.</p>
                 @endforelse
             </div>
         </div>
@@ -137,7 +137,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <p class="font-medium text-gray-900">{{ $record['user_name'] }}</p>
-                                    <p class="text-xs text-gray-500">{{ $record['department'] ?? 'N/A' }}</p>
+                                    <p class="text-xs text-gray-600">{{ $record['department'] ?? 'N/A' }}</p>
                                 </div>
                             </div>
                         </td>
@@ -166,11 +166,11 @@
                         <td class="whitespace-nowrap px-4 py-3">
                             @if(! is_array($allowedStations) || in_array($record['station'], $allowedStations, true))
                             <a href="{{ route('stations.' . $record['station']) }}"
-                               class="inline-flex items-center gap-1 text-sm font-medium text-green-700 hover:text-green-800">
+                               class="inline-flex items-center gap-1 py-1 text-sm font-medium text-green-700 hover:text-green-800">
                                 <i class="fas fa-eye"></i>Lihat
                             </a>
                             @else
-                            <span class="text-xs text-gray-400" title="Stasiun di luar departemen Anda">
+                            <span class="text-xs text-gray-600" title="Stasiun di luar departemen Anda">
                                 <i class="fas fa-ban mr-1"></i>Di luar departemen
                             </span>
                             @endif
@@ -178,7 +178,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                        <td colspan="8" class="px-6 py-12 text-center text-gray-600">
                             <i class="fas fa-check-circle mb-2 text-4xl text-green-500"></i>
                             <p class="text-lg font-semibold">Tidak ada data flagged</p>
                             <p class="text-sm">Semua data dalam rentang waktu normal</p>

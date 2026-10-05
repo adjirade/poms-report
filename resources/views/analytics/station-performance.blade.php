@@ -20,7 +20,7 @@
                         @endforeach
                     </select>
                 </label>
-                <div class="flex items-center gap-2 pb-1 text-xs text-gray-500">
+                <div class="flex items-center gap-2 pb-1 text-xs text-gray-600">
                     <i class="fas fa-clock text-green-600"></i>
                     Rentang: {{ $range }} hari terakhir &middot; {{ $totalInRange }} record
                     <span class="badge badge-neutral">🚩 {{ $flaggedInRange }} flagged</span>
@@ -52,10 +52,10 @@
             <p class="mt-1 text-2xl font-bold text-gray-800">
                 {{ $c['today'] !== null ? number_format($c['today'], 2) : '—' }}
                 @if($c['unit'])
-                    <span class="text-sm font-medium text-gray-500">{{ $c['unit'] }}</span>
+                    <span class="text-sm font-medium text-gray-600">{{ $c['unit'] }}</span>
                 @endif
             </p>
-            <p class="mt-1 text-xs text-gray-500">
+            <p class="mt-1 text-xs text-gray-600">
                 Kemarin: {{ $c['yesterday'] !== null ? number_format($c['yesterday'], 2) : '—' }}
                 @if($c['delta_pct'] !== null)
                     @php
@@ -69,7 +69,7 @@
         </div>
         @empty
         <div class="card card-pad col-span-4">
-            <p class="text-sm text-gray-500">Konfigurasi series tidak tersedia untuk stasiun ini.</p>
+            <p class="text-sm text-gray-600">Konfigurasi series tidak tersedia untuk stasiun ini.</p>
         </div>
         @endforelse
     </div>
@@ -82,10 +82,10 @@
                 Tren Harian — {{ $stationTitle }}
             </h2>
             <div class="flex items-center gap-2">
-                <span class="hidden text-xs text-gray-500 sm:inline">
+                <span class="hidden text-xs text-gray-600 sm:inline">
                     <i class="fas fa-arrows-left-right"></i> Drag area untuk zoom &middot; Ctrl+scroll
                     &middot; <span class="font-medium">garis putus-putus</span> = MA 7 hari
-                    &middot; <span class="font-medium text-rose-600">titik merah</span> = anomali (&gt;2σ)
+                    &middot; <span class="font-medium text-rose-700">titik merah</span> = anomali (&gt;2σ)
                 </span>
                 <button type="button" onclick="PomsStationChart.reset('stationPerformanceChart')"
                         class="btn-ghost !min-h-0 !px-3 !py-1.5 text-xs">
@@ -122,7 +122,7 @@
             <i class="fas fa-triangle-exclamation text-amber-600 mr-2"></i>
             Deteksi Anomali — {{ $stationTitle }} ({{ $range }} hari)
         </h2>
-        <p class="mb-3 text-xs text-gray-500">
+        <p class="mb-3 text-xs text-gray-600">
             Hari dengan nilai parameter menyimpang &gt; 2× simpangan baku dari rata-rata rentang
             (butuh minimal 7 titik data). Analisis statistik, bukan pengganti verifikasi manual.
         </p>
@@ -138,7 +138,7 @@
             @foreach($anomalousSeries as $s)
             <div class="rounded-2xl border border-white/50 bg-white/60 p-4">
                 <p class="text-sm font-semibold text-gray-800">
-                    {{ $s['label'] }}@if($s['unit']) <span class="text-gray-500">({{ $s['unit'] }})</span>@endif
+                    {{ $s['label'] }}@if($s['unit']) <span class="text-gray-600">({{ $s['unit'] }})</span>@endif
                     <span class="badge ml-1 border-amber-200 bg-amber-100 text-amber-800">{{ count($s['anomaly_points']) }}</span>
                 </p>
                 <ul class="mt-2 space-y-1 text-xs text-gray-600">
@@ -186,10 +186,10 @@
                 <i class="fas fa-bullseye text-green-700 mr-2"></i>
                 Target vs Realisasi — {{ $stationTitle }} ({{ $range }} hari)
             </h2>
-            <span class="text-xs text-gray-500">Realisasi = rata-rata rentang {{ $range }} hari</span>
+            <span class="text-xs text-gray-600">Realisasi = rata-rata rentang {{ $range }} hari</span>
         </div>
         @if(count($targetProgress) === 0)
-            <p class="text-sm text-gray-500">Stasiun ini belum memiliki target KPI terkonfigurasi.</p>
+            <p class="text-sm text-gray-600">Stasiun ini belum memiliki target KPI terkonfigurasi.</p>
         @else
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach($targetProgress as $t)
@@ -202,7 +202,7 @@
                 <div class="flex items-start justify-between gap-2">
                     <div>
                         <p class="text-sm font-semibold text-gray-800">{{ $t['label'] }}</p>
-                        <p class="text-xs text-gray-500">Target {{ $t['target_text'] }} @if($t['unit']){{ $t['unit'] }}@endif</p>
+                        <p class="text-xs text-gray-600">Target {{ $t['target_text'] }} @if($t['unit']){{ $t['unit'] }}@endif</p>
                     </div>
                     @if($none)
                         <span class="badge badge-muted">— Data</span>
@@ -212,9 +212,9 @@
                         <span class="badge border-rose-200 bg-rose-100 text-rose-800">✗ Belum</span>
                     @endif
                 </div>
-                <p class="mt-2 text-2xl font-bold {{ $none ? 'text-gray-500' : ($ok ? 'text-emerald-700' : 'text-rose-700') }}">
+                <p class="mt-2 text-2xl font-bold {{ $none ? 'text-gray-600' : ($ok ? 'text-emerald-700' : 'text-rose-700') }}">
                     {{ $t['actual'] !== null ? number_format($t['actual'], 2) : '—' }}
-                    @if($t['unit'])<span class="text-sm font-medium text-gray-500">{{ $t['unit'] }}</span>@endif
+                    @if($t['unit'])<span class="text-sm font-medium text-gray-600">{{ $t['unit'] }}</span>@endif
                 </p>
                 <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200"
                      role="progressbar" aria-valuenow="{{ $t['progress'] }}" aria-valuemin="0" aria-valuemax="100"
@@ -251,13 +251,13 @@
                     @forelse($shiftBreakdown as $shift)
                     <tr class="border-b border-white/30">
                         <td class="whitespace-nowrap px-3 py-2.5 font-semibold text-gray-800">{{ $shift['label'] }}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-gray-500">{{ $shift['hours'] }}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-gray-600">{{ $shift['hours'] }}</td>
                         <td class="px-3 py-2.5 font-medium text-gray-800">{{ number_format($shift['total']) }}</td>
                         <td class="px-3 py-2.5">
                             @if($shift['flagged'] > 0)
                                 <span class="badge border-rose-200 bg-rose-100 text-rose-800">🚩 {{ $shift['flagged'] }}</span>
                             @else
-                                <span class="text-gray-500">0</span>
+                                <span class="text-gray-600">0</span>
                             @endif
                         </td>
                         @foreach($chart['series'] as $s)
@@ -267,7 +267,7 @@
                         @endforeach
                     </tr>
                     @empty
-                    <tr><td colspan="{{ 4 + count($chart['series']) }}" class="px-3 py-8 text-center text-gray-500">Belum ada data pada rentang ini.</td></tr>
+                    <tr><td colspan="{{ 4 + count($chart['series']) }}" class="px-3 py-8 text-center text-gray-600">Belum ada data pada rentang ini.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -305,9 +305,9 @@
                                     $val = $record->{$col['key']};
                                 @endphp
                                 @if($val === null || $val === '')
-                                    <span class="text-gray-400">—</span>
+                                    <span class="text-gray-600">—</span>
                                 @elseif(is_numeric($val) && ! in_array($col['key'], ['no_spb', 'no_rebusan', 'no_press', 'no_tangki'], true))
-                                    {{ number_format((float) $val, 2) }} @if(! empty($col['unit']))<span class="text-gray-500">{{ $col['unit'] }}</span>@endif
+                                    {{ number_format((float) $val, 2) }} @if(! empty($col['unit']))<span class="text-gray-600">{{ $col['unit'] }}</span>@endif
                                 @else
                                     {{ $val }}
                                 @endif
@@ -326,7 +326,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ count($tableColumns) + 3 }}" class="px-3 py-10 text-center text-gray-500">
+                        <td colspan="{{ count($tableColumns) + 3 }}" class="px-3 py-10 text-center text-gray-600">
                             Belum ada record pada rentang {{ $range }} hari terakhir.
                         </td>
                     </tr>

@@ -18,7 +18,7 @@
             'icon' => 'fa-flag',
             'tile' => 'from-amber-400 to-orange-600',
             'glow' => 'bg-amber-400',
-            'valueClass' => 'text-amber-600',
+            'valueClass' => 'text-amber-700',
         ],
         [
             'label' => 'Belum Diverifikasi',
@@ -82,7 +82,7 @@
             <div class="pointer-events-none absolute -right-8 -top-10 h-24 w-24 rounded-full {{ $card['glow'] }} opacity-25 blur-2xl transition group-hover:opacity-40"></div>
             <div class="relative flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-500">{{ $card['label'] }}</p>
+                    <p class="text-sm text-gray-600">{{ $card['label'] }}</p>
                     <p class="mt-1 text-3xl font-bold {{ $card['valueClass'] }}">{{ number_format($card['value']) }}</p>
                 </div>
                 <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br {{ $card['tile'] }} text-white shadow-float">
@@ -123,7 +123,7 @@
                     <i class="fas fa-chevron-right text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-green-500"></i>
                 </a>
                 @empty
-                <p class="col-span-full py-6 text-center text-sm text-gray-500">Tidak ada stasiun yang dapat diakses.</p>
+                <p class="col-span-full py-6 text-center text-sm text-gray-600">Tidak ada stasiun yang dapat diakses.</p>
                 @endforelse
             </div>
         </div>
@@ -177,12 +177,12 @@
             @forelse($recent_logs as $log)
             <div class="glass-subtle flex items-center justify-between rounded-2xl border-l-4 p-3 {{ $log->is_flagged ? 'border-l-amber-500' : 'border-l-green-500' }}">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-gray-500 shadow-inner">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-gray-600 shadow-inner">
                         <i class="fas fa-user text-sm"></i>
                     </div>
                     <div>
                         <p class="font-semibold text-gray-800">{{ $log->user?->name ?? 'Pengguna dihapus' }}</p>
-                        <p class="text-xs text-gray-500">
+                        <p class="text-xs text-gray-600">
                             {{ ucwords(str_replace('_', ' ', $log->getTable())) }} · {{ $log->created_at->diffForHumans() }}
                         </p>
                     </div>
@@ -192,7 +192,7 @@
                 @endif
             </div>
             @empty
-            <div class="py-10 text-center text-gray-500">
+            <div class="py-10 text-center text-gray-600">
                 <i class="fas fa-inbox mb-2 text-3xl text-gray-300"></i>
                 <p>Belum ada aktivitas hari ini</p>
             </div>

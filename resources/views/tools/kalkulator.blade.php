@@ -17,7 +17,7 @@
             <i class="fas fa-weight-hanging text-blue-600 mr-2"></i>
             Tonnage Neto (Timbang)
         </h2>
-        <p class="mt-0.5 text-sm text-gray-500">Berat bersih kiriman = bruto − tarra.</p>
+        <p class="mt-0.5 text-sm text-gray-600">Berat bersih kiriman = bruto − tarra.</p>
         <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
                 <label for="k-bruto" class="mb-1 block text-sm font-medium text-gray-700">Bruto (kg)</label>
@@ -30,7 +30,7 @@
         </div>
         <div class="glass-subtle mt-4 rounded-2xl p-4 text-center" x-show="neto.bruto !== null && neto.tarra !== null && neto.bruto >= neto.tarra">
             <p class="text-3xl font-bold text-green-700" x-text="((neto.bruto || 0) - (neto.tarra || 0)).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' kg'"></p>
-            <p class="mt-1 text-sm text-gray-500"
+            <p class="mt-1 text-sm text-gray-600"
                x-text="(((neto.bruto || 0) - (neto.tarra || 0)) / 1000).toLocaleString('id-ID', { maximumFractionDigits: 3 }) + ' ton'"></p>
         </div>
         <p class="mt-3 text-sm font-medium text-rose-700" x-show="neto.bruto !== null && neto.tarra !== null && neto.bruto < neto.tarra">
@@ -44,7 +44,7 @@
             <i class="fas fa-percent text-amber-600 mr-2"></i>
             Potongan Buah (kg)
         </h2>
-        <p class="mt-0.5 text-sm text-gray-500">Konversi persentase potongan ke kilogram dari berat lot.</p>
+        <p class="mt-0.5 text-sm text-gray-600">Konversi persentase potongan ke kilogram dari berat lot.</p>
         <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
                 <label for="k-berat" class="mb-1 block text-sm font-medium text-gray-700">Berat Lot (kg)</label>
@@ -57,7 +57,7 @@
         </div>
         <div class="glass-subtle mt-4 rounded-2xl p-4 text-center" x-show="potongan.berat > 0 && potongan.persen !== null">
             <p class="text-3xl font-bold text-amber-700" x-text="((potongan.berat || 0) * (potongan.persen || 0) / 100).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' kg'"></p>
-            <p class="mt-1 text-sm text-gray-500"
+            <p class="mt-1 text-sm text-gray-600"
                x-text="'Bersih: ' + ((potongan.berat || 0) * (100 - (potongan.persen || 0)) / 100).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' kg'"></p>
         </div>
     </div>
@@ -68,7 +68,7 @@
             <i class="fas fa-oil-can text-emerald-600 mr-2"></i>
             Rendemen / OER (%)
         </h2>
-        <p class="mt-0.5 text-sm text-gray-500">Rendemen CPO = CPO keluar ÷ buah masuk × 100. Kernel ratio opsional.</p>
+        <p class="mt-0.5 text-sm text-gray-600">Rendemen CPO = CPO keluar ÷ buah masuk × 100. Kernel ratio opsional.</p>
         <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
                 <label for="k-buah" class="mb-1 block text-sm font-medium text-gray-700">Buah Masuk (ton)</label>
@@ -85,12 +85,12 @@
         </div>
         <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" x-show="rendemen.buah > 0 && rendemen.cpo !== null">
             <div class="glass-subtle rounded-2xl p-4 text-center">
-                <p class="text-xs text-gray-500">Rendemen / OER</p>
+                <p class="text-xs text-gray-600">Rendemen / OER</p>
                 <p class="text-3xl font-bold text-emerald-700"
                    x-text="((rendemen.cpo || 0) / (rendemen.buah || 1) * 100).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + '%'"></p>
             </div>
             <div class="glass-subtle rounded-2xl p-4 text-center" x-show="rendemen.kernel !== null && rendemen.kernel > 0">
-                <p class="text-xs text-gray-500">Kernel Ratio</p>
+                <p class="text-xs text-gray-600">Kernel Ratio</p>
                 <p class="text-3xl font-bold text-teal-700"
                    x-text="((rendemen.kernel || 0) / (rendemen.buah || 1) * 100).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + '%'"></p>
             </div>
@@ -124,7 +124,7 @@
         </div>
     </div>
 
-    <p class="text-center text-xs text-gray-500">
+    <p class="text-center text-xs text-gray-600">
         <i class="fas fa-circle-info mr-1"></i>Semua perhitungan berjalan di perangkat Anda — tidak ada data yang dikirim ke server.
     </p>
 </div>

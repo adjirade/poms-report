@@ -70,7 +70,7 @@
                                class="input text-base"
                                required
                                autofocus>
-                        <p class="mt-2 text-xs text-gray-500">Format: 628xxxxxxxxxx (tanpa +, tanpa spasi)</p>
+                        <p class="mt-2 text-xs text-gray-600">Format: 628xxxxxxxxxx (tanpa +, tanpa spasi)</p>
                     </div>
 
                     <div>
@@ -78,7 +78,7 @@
                             <label for="password" class="block text-sm font-medium text-gray-700">
                                 <i class="fas fa-lock mr-2 text-green-600"></i>Password
                             </label>
-                            <a href="{{ route('password.request') }}" class="text-sm font-medium text-green-700 hover:text-green-800">
+                            <a href="{{ route('password.request') }}" class="inline-block py-1.5 text-sm font-medium leading-tight text-green-700 hover:text-green-800">
                                 Lupa password?
                             </a>
                         </div>

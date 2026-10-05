@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, Sawit]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # ------------------------------------------------------------------
+  # 1) Test suite (PHPUnit — sqlite in-memory, sesuai phpunit.xml)
+  # ------------------------------------------------------------------
+  tests:
+    name: Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_sqlite, sqlite3, gd, exif, iconv
+          coverage: none
+
+      - name: Setup Node 20 (untuk vite build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies composer
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Install dependencies npm + build asset
+        run: |
+          npm ci || npm install
+          npm run build
+
+      - name: Siapkan .env CI
+        run: |
+          php -r "file_exists('.env') || copy('.env.example', '.env');"
+          php artisan key:generate --force
+          # Override env CI (DB sqlite in-memory via phpunit.xml; queue sync; sync HQ mati)
+          cat >> .env <<'EOF'
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          QUEUE_CONNECTION=sync
+          CACHE_STORE=array
+          SESSION_DRIVER=array
+          HQ_SYNC_ENABLED=false
+          APP_URL=http://127.0.0.1:8000
+          APP_ENV=testing
+          APP_DEBUG=true
+          EOF
+
+      - name: Jalankan test suite
+        run: php artisan test
+
+  # ------------------------------------------------------------------
+  # 2) Audit UI/UX otomatis (Chrome headless CDP + gate aksesibilitas)
+  #    Alur sama dengan README di scripts/ui-audit/: serve → chrome →
+  #    user audit → audit → gate. User audit dihapus di blok always().
+  # ------------------------------------------------------------------
+  ui-audit:
+    name: Audit UI (a11y)
+    runs-on: ubuntu-latest
+    needs: tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, pdo_sqlite, sqlite3, gd, iconv
+          coverage: none
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies composer
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Install dependencies npm + build asset
+        run: |
+          npm ci || npm install
+          npm run build
+
+      - name: Siapkan .env CI (sqlite file)
+        run: |
+          php -r "file_exists('.env') || copy('.env.example', '.env');"
+          php artisan key:generate --force
+          cat >> .env <<'EOF'
+          DB_CONNECTION=sqlite
+          DB_DATABASE=database/database-ci.sqlite
+          QUEUE_CONNECTION=sync
+          CACHE_STORE=array
+          SESSION_DRIVER=file
+          HQ_SYNC_ENABLED=false
+          TELEGRAM_RECAP_ENABLED=false
+          TELEGRAM_NOTIF_ENABLED=false
+          APP_URL=http://127.0.0.1:8000
+          APP_ENV=production
+          APP_DEBUG=false
+          EOF
+          touch database/database-ci.sqlite
+
+      - name: Migrasi + seed
+        run: |
+          php artisan migrate --force
+          php artisan db:seed --force
+
+      - name: Mulai server Laravel
+        run: php artisan serve --host=127.0.0.1 --port=8000 &
+
+      - name: Mulai Chrome headless (CDP 9222)
+        run: |
+          google-chrome --headless=new --no-sandbox --disable-gpu \
+            --remote-debugging-port=9222 \
+            --user-data-dir=$HOME/.chrome-audit about:blank &
+
+      - name: Tunggu server siap
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8000/login > /dev/null && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:8000/login > /dev/null || (echo "Server tidak siap" && exit 1)
+
+      - name: Buat user audit
+        run: php scripts/ui-audit/audit-users.php
+
+      - name: Jalankan audit UI (21 halaman, desktop + mobile)
+        run: node scripts/ui-audit/ui-audit.mjs
+
+      - name: Gate aksesibilitas (gagal bila ada pelanggaran WCAG keras)
+        run: node scripts/ui-audit/ui-gate.mjs
+
+      - name: Hapus user audit (selalu dijalankan)
+        if: always()
+        run: php scripts/ui-audit/audit-users.php --remove
+
+      - name: Upload bukti audit (hasil + screenshot)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-audit-results
+          path: scripts/ui-audit/results/
+          retention-days: 14

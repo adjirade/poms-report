@@ -12,6 +12,7 @@ use App\Models\LogSterilizer;
 use App\Models\LogTimbang;
 use App\Models\User;
 use App\Services\CommandCenterService;
+use App\Services\DailyRecapService;
 use App\Services\StationAnalyticsService;
 use App\Support\StationChartConfig;
 use Illuminate\Http\Request;
@@ -291,6 +292,32 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         return view('analytics.command-center', $commandCenter->build($user->plant_id));
+    }
+
+    /**
+     * Halaman "Rekap Mingguan" — agregat operasional 7 hari + grafik tren
+     * tonnage/record harian. Mendukung dua periode via ?periode=:
+     *  - 7d        (default) : 7 hari terakhir termasuk hari ini
+     *  - minggu_lalu         : Senin–Minggu minggu sebelumnya
+     */
+    public function weeklyRecap(DailyRecapService $recap, Request $request)
+    {
+        $user = auth()->user();
+        $periode = $request->query('periode') === 'minggu_lalu' ? 'minggu_lalu' : '7d';
+
+        [$start, $end] = $periode === 'minggu_lalu'
+            ? DailyRecapService::lastWeekRange(now())
+            : [now()->subDays(6)->startOfDay(), now()->endOfDay()];
+
+        $summary = $recap->weeklySummary($user->plant_id, $start, $end);
+
+        return view('analytics.weekly-recap', [
+            'summary' => $summary,
+            'periode' => $periode,
+            'periodLabel' => $periode === 'minggu_lalu'
+                ? 'Minggu Lalu (Senin–Minggu)'
+                : '7 Hari Terakhir',
+        ]);
     }
 
     /**

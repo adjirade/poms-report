@@ -66,7 +66,7 @@
                                class="input text-base"
                                required
                                autofocus>
-                        <p class="mt-2 text-xs text-gray-500">
+                        <p class="mt-2 text-xs text-gray-600">
                             Masukkan nomor yang dipakai login. Tautan reset dikirim via bot Telegram
                             (pastikan Anda pernah mengirim pesan ke bot).
                         </p>

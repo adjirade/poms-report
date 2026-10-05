@@ -28,7 +28,7 @@
             <div>
                 <label for="slt-search" class="mb-1 block text-sm font-medium text-gray-700">Cari</label>
                 <div class="relative">
-                    <i class="fas fa-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
+                    <i class="fas fa-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-600"></i>
                     <input id="slt-search" type="text" wire:model.live.debounce.300ms="search"
                            placeholder="Cari user, ID..." class="input pl-9">
                 </div>
@@ -72,7 +72,7 @@
                             </div>
                             <div class="min-w-0">
                                 <p class="font-medium text-gray-900">{{ $log->user?->name ?? 'N/A' }}</p>
-                                <p class="text-xs text-gray-500">{{ $log->user?->department ?? 'N/A' }}</p>
+                                <p class="text-xs text-gray-600">{{ $log->user?->department ?? 'N/A' }}</p>
                             </div>
                         </div>
                     </td>
@@ -81,7 +81,7 @@
                             @foreach($log->getAttributes() as $key => $value)
                                 @if(! in_array($key, $metaExcluded, true))
                                     <span class="inline-flex items-center gap-1">
-                                        <strong class="font-semibold text-gray-500">{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
+                                        <strong class="font-semibold text-gray-600">{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
                                         <span class="text-gray-800">{{ $value }}</span>
                                     </span>
                                 @endif
@@ -127,7 +127,7 @@
                             <i class="fas fa-check"></i>Verify
                         </button>
                         @else
-                        <span class="text-xs text-gray-500">
+                        <span class="text-xs text-gray-600">
                             by {{ $log->verifier->name ?? 'N/A' }}
                         </span>
                         @endif
@@ -136,7 +136,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-gray-500">
+                    <td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-gray-600">
                         <i class="fas fa-inbox mb-2 text-3xl text-gray-300"></i>
                         <p>Tidak ada data</p>
                     </td>
@@ -176,7 +176,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="truncate font-medium text-gray-900">{{ $log->user?->name ?? 'N/A' }}</p>
-                    <p class="text-xs text-gray-500">{{ $log->user?->department ?? 'N/A' }}</p>
+                    <p class="text-xs text-gray-600">{{ $log->user?->department ?? 'N/A' }}</p>
                 </div>
             </div>
 
@@ -184,7 +184,7 @@
                 @foreach($log->getAttributes() as $key => $value)
                     @if(! in_array($key, $metaExcluded, true))
                     <div class="min-w-0">
-                        <dt class="text-gray-400">{{ ucfirst(str_replace('_', ' ', $key)) }}</dt>
+                        <dt class="text-gray-600">{{ ucfirst(str_replace('_', ' ', $key)) }}</dt>
                         <dd class="break-words font-medium text-gray-800">{{ $value }}</dd>
                     </div>
                     @endif
@@ -193,11 +193,11 @@
 
             <div class="mt-3 grid grid-cols-2 gap-3 border-t border-white/40 pt-3 text-xs">
                 <div>
-                    <p class="text-gray-400">Waktu Kirim</p>
+                    <p class="text-gray-600">Waktu Kirim</p>
                     <p class="font-medium text-gray-800">{{ $log->timestamp_kirim->format('d/m/Y H:i:s') }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-400">Waktu Server</p>
+                    <p class="text-gray-600">Waktu Server</p>
                     <p class="font-medium text-gray-800">{{ $log->timestamp_server->format('d/m/Y H:i:s') }}</p>
                     @if($log->is_flagged)
                     <p class="text-red-600">
@@ -216,7 +216,7 @@
                     <i class="fas fa-check"></i>Verifikasi
                 </button>
                 @else
-                <p class="text-center text-xs text-gray-500">
+                <p class="text-center text-xs text-gray-600">
                     <i class="fas fa-user-check mr-1"></i>Diverifikasi oleh {{ $log->verifier->name ?? 'N/A' }}
                 </p>
                 @endif
@@ -224,7 +224,7 @@
             @endif
         </div>
         @empty
-        <div class="p-8 text-center text-gray-500">
+        <div class="p-8 text-center text-gray-600">
             <i class="fas fa-inbox mb-2 text-3xl text-gray-300"></i>
             <p>Tidak ada data</p>
         </div>

@@ -111,6 +111,9 @@ return [
     'recap' => [
         'enabled' => env('TELEGRAM_RECAP_ENABLED', true),
         'chat_ids' => env('TELEGRAM_RECAP_CHAT_IDS', ''),
+
+        // Saklar khusus rekap mingguan (telegram:weekly-recap).
+        'weekly_enabled' => env('TELEGRAM_WEEKLY_RECAP_ENABLED', true),
     ],
 
 ];

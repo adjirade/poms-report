@@ -41,7 +41,9 @@ Route::post('/telegram/webhook', function (Request $request) {
 
     $message = $request->input('message');
 
-    if (is_array($message) && isset($message['text'])) {
+    // Pesan share-contact (tombol "Hubungkan Nomor Saya") tidak punya `text`
+    // — dispatch juga agar penautan akun via bot berfungsi.
+    if (is_array($message) && (isset($message['text']) || isset($message['contact']))) {
         ProcessTelegramMessage::dispatch($message);
     }
 

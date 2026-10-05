@@ -21,7 +21,7 @@
             <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
                 <i class="fas fa-users-cog text-green-600"></i> Manajemen User
             </h2>
-            <p class="text-sm text-gray-500 mt-1">
+            <p class="text-sm text-gray-700 mt-1">
                 Tambah, ubah role, reset password, aktif/nonaktifkan, dan hapus akun pengguna.
             </p>
         </div>
@@ -58,7 +58,7 @@
         <button type="button" wire:click="$set('roleFilter', '{{ $roleFilter === $r ? '' : $r }}')"
                 class="glass-subtle rounded-2xl p-3 text-left transition hover:-translate-y-0.5 hover:shadow-glass
                        {{ $roleFilter === $r ? 'bg-white/85 ring-1 ring-green-500/50' : '' }}">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ $r }}</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">{{ $r }}</p>
             <p class="text-xl font-bold text-gray-800">{{ $roleCounts[$r] ?? 0 }}</p>
         </button>
         @endforeach
@@ -68,18 +68,19 @@
     <div class="card card-pad">
         <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
             <div class="relative">
-                <i class="fas fa-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <i class="fas fa-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 text-sm"></i>
                 <input type="text" wire:model.live.debounce.300ms="search"
+                       aria-label="Cari nama atau nomor telepon"
                        placeholder="Cari nama atau nomor telepon..."
                        class="input pl-9">
             </div>
-            <select wire:model.live="roleFilter" class="input">
+            <select wire:model.live="roleFilter" aria-label="Filter berdasarkan role" class="input">
                 <option value="">Semua Role</option>
                 @foreach($roles as $r)
                 <option value="{{ $r }}">{{ ucfirst($r) }}</option>
                 @endforeach
             </select>
-            <select wire:model.live="statusFilter" class="input">
+            <select wire:model.live="statusFilter" aria-label="Filter berdasarkan status" class="input">
                 <option value="">Semua Status</option>
                 <option value="active">Aktif</option>
                 <option value="inactive">Nonaktif</option>
@@ -106,17 +107,17 @@
                     <tr class="transition">
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-600 to-green-700 text-xs font-bold text-white">
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-700 to-green-800 text-xs font-bold text-white">
                                     {{ strtoupper(substr($u->name, 0, 1)) }}
                                 </div>
                                 <div class="min-w-0">
                                     <p class="font-semibold text-gray-800 truncate">
                                         {{ $u->name }}
                                         @if($u->id === auth()->id())
-                                        <span class="ml-1 text-[10px] font-normal text-gray-400">(Anda)</span>
+                                        <span class="ml-1 text-[10px] font-normal text-gray-600">(Anda)</span>
                                         @endif
                                     </p>
-                                    <p class="text-xs text-gray-500">{{ $u->phone_number }}</p>
+                                    <p class="text-xs text-gray-600">{{ $u->phone_number }}</p>
                                 </div>
                             </div>
                         </td>
@@ -166,7 +167,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-4 py-12 text-center text-gray-500">
+                        <td colspan="6" class="px-4 py-12 text-center text-gray-600">
                             <i class="fas fa-user-slash text-2xl mb-2 text-gray-300"></i>
                             <p>Tidak ada user yang cocok dengan filter.</p>
                         </td>
@@ -194,7 +195,7 @@
                     <i class="fas {{ $editingId ? 'fa-user-pen' : 'fa-user-plus' }} text-green-600 mr-2"></i>
                     {{ $editingId ? 'Ubah User' : 'Tambah User Baru' }}
                 </h3>
-                <button type="button" wire:click="closeModal" class="rounded-xl p-1.5 text-gray-400 transition hover:bg-white/60 hover:text-gray-700">
+                <button type="button" wire:click="closeModal" class="rounded-xl p-1.5 text-gray-600 transition hover:bg-white/60 hover:text-gray-800">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -244,7 +245,7 @@
                     </div>
                     @else
                     <div class="flex items-end">
-                        <div class="w-full rounded-2xl bg-white/60 px-3 py-2.5 text-xs text-gray-500">
+                        <div class="w-full rounded-2xl bg-white/60 px-3 py-2.5 text-xs text-gray-600">
                             <i class="fas fa-info-circle mr-1"></i>Role ini tidak memakai departemen.
                         </div>
                     </div>
@@ -268,7 +269,7 @@
                                        autocomplete="new-password"
                                        class="input font-mono pr-10 @error('password') border-red-400 @enderror">
                                 <button type="button" @click="showPw = !showPw"
-                                        class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:text-gray-600"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-600 hover:text-gray-700"
                                         :aria-label="showPw ? 'Sembunyikan password' : 'Tampilkan password'">
                                     <i class="fas" :class="showPw ? 'fa-eye-slash' : 'fa-eye'"></i>
                                 </button>
@@ -281,7 +282,7 @@
                         </div>
                         @error('password')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         @if($editingId)
-                        <p class="mt-1 text-xs text-gray-400">Biarkan kosong untuk mempertahankan password lama.</p>
+                        <p class="mt-1 text-xs text-gray-600">Biarkan kosong untuk mempertahankan password lama.</p>
                         @endif
                     </div>
                 </div>                            <div class="flex items-center justify-end gap-2 border-t border-white/50 pt-4">

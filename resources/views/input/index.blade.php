@@ -14,7 +14,7 @@
             </div>
             <div>
                 <h2 class="text-lg font-bold text-gray-800">Pilih stasiun untuk mengisi data</h2>
-                <p class="mt-1 text-sm text-gray-500">
+                <p class="mt-1 text-sm text-gray-600">
                     Data divalidasi memakai aturan yang sama dengan bot Telegram. Telegram tetap tersedia
                     sebagai cadangan, tetapi pengisian lewat web adalah kanal utama.
                 </p>
@@ -33,13 +33,13 @@
                 </div>
                 <div>
                     <p class="font-semibold text-gray-800">{{ $label }}</p>
-                    <p class="text-xs text-gray-400">Isi data</p>
+                    <p class="text-xs text-gray-600">Isi data</p>
                 </div>
             </div>
             <i class="fas fa-chevron-right text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-green-500"></i>
         </a>
         @empty
-        <div class="card col-span-full p-8 text-center text-gray-500">
+        <div class="card col-span-full p-8 text-center text-gray-600">
             <i class="fas fa-user-slash mb-2 text-3xl text-gray-300"></i>
             <p>Akun Anda belum terhubung ke departemen/stasiun mana pun. Hubungi developer.</p>
         </div>
@@ -64,9 +64,9 @@
                     <div>
                         <p class="text-sm font-medium text-gray-800">
                             {{ \App\Http\Controllers\LogInputController::STATIONS[$row['station']] ?? $row['station'] }}
-                            <span class="text-gray-400">#{{ $row['id'] }}</span>
+                            <span class="text-gray-600">#{{ $row['id'] }}</span>
                         </p>
-                        <p class="text-xs text-gray-500">{{ $row['timestamp']?->format('d/m/Y H:i') }}</p>
+                        <p class="text-xs text-gray-600">{{ $row['timestamp']?->format('d/m/Y H:i') }}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
@@ -83,7 +83,7 @@
             @endforeach
         </ul>
         @else
-        <div class="p-8 text-center text-gray-500">
+        <div class="p-8 text-center text-gray-600">
             <i class="fas fa-inbox mb-2 text-3xl text-gray-300"></i>
             <p>Belum ada data yang Anda input.</p>
         </div>

@@ -181,6 +181,7 @@
                 </button>
                 <div x-show="open && (mobileOpen || !collapsed)" x-cloak class="ml-5 mt-1 space-y-0.5 border-l border-white/20 pl-2">
                     <a href="{{ route('analytics.command-center') }}" class="block rounded-lg p-2 text-sm {{ request()->routeIs('analytics.command-center') ? 'bg-white/[0.16] font-semibold text-white' : 'text-emerald-100/80 hover:bg-white/10' }}">Command Center</a>
+                    <a href="{{ route('analytics.weekly-recap') }}" class="block rounded-lg p-2 text-sm {{ request()->routeIs('analytics.weekly-recap') ? 'bg-white/[0.16] font-semibold text-white' : 'text-emerald-100/80 hover:bg-white/10' }}">Rekap Mingguan</a>
                     <a href="{{ route('analytics.overview') }}" class="block rounded-lg p-2 text-sm {{ request()->routeIs('analytics.overview') ? 'bg-white/[0.16] font-semibold text-white' : 'text-emerald-100/80 hover:bg-white/10' }}">Overview</a>
                     <a href="{{ route('analytics.losses') }}" class="block rounded-lg p-2 text-sm {{ request()->routeIs('analytics.losses') ? 'bg-white/[0.16] font-semibold text-white' : 'text-emerald-100/80 hover:bg-white/10' }}">Losses</a>
                     <a href="{{ route('analytics.efficiency') }}" class="block rounded-lg p-2 text-sm {{ request()->routeIs('analytics.efficiency') ? 'bg-white/[0.16] font-semibold text-white' : 'text-emerald-100/80 hover:bg-white/10' }}">Efficiency</a>
@@ -289,13 +290,13 @@
                     </button>
                     <div class="min-w-0">
                         <h1 class="truncate text-lg font-bold text-gray-800 sm:text-xl">@hasSection('title')@yield('title')@else{{ $title ?? 'Dashboard' }}@endif</h1>
-                        <p class="hidden truncate text-xs text-gray-500 sm:block">@hasSection('subtitle')@yield('subtitle')@else{{ $subtitle ?? 'Sistem Pelaporan Digital Pabrik Kelapa Sawit' }}@endif</p>
+                        <p class="hidden truncate text-xs text-gray-600 sm:block">@hasSection('subtitle')@yield('subtitle')@else{{ $subtitle ?? 'Sistem Pelaporan Digital Pabrik Kelapa Sawit' }}@endif</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <span class="text-xs text-gray-500 hidden lg:flex items-center gap-1.5">
+                    <span class="text-xs text-gray-600 hidden lg:flex items-center gap-1.5">
                         <i class="fas fa-map-marker-alt text-green-600"></i>{{ auth()->user()->plant_id }}
-                        <span class="text-gray-300 mx-1">|</span>
+                        <span class="text-gray-600 mx-1">|</span>
                         <i class="far fa-clock"></i><span x-data="{ now: new Date() }" x-init="setInterval(() => { now = new Date() }, 30000)"
                               x-text="new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(now)">{{ now()->timezone('Asia/Jakarta')->format('d M Y H:i') }}</span> WIB
                     </span>
@@ -313,7 +314,7 @@
                              class="glass absolute right-0 z-30 mt-2 w-56 overflow-hidden py-1.5 shadow-glass-lg">
                             <div class="border-b border-white/50 px-4 py-2">
                                 <p class="text-sm font-semibold text-gray-800">{{ auth()->user()->name }}</p>
-                                <p class="text-xs text-gray-500">{{ auth()->user()->phone_number }}</p>
+                                <p class="text-xs text-gray-600">{{ auth()->user()->phone_number }}</p>
                             </div>
                             <a href="{{ route('profile') }}" class="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 transition hover:bg-white/60">
                                 <i class="fas fa-user-circle w-4 text-gray-400"></i> Profil Saya
@@ -358,7 +359,7 @@
         </main>
         
         <!-- Footer -->
-        <footer class="glass-bar border-x-0 border-b-0 px-4 py-3 text-center text-xs text-gray-500 no-print">
+        <footer class="glass-bar border-x-0 border-b-0 px-4 py-3 text-center text-xs text-gray-600 no-print">
             <p>&copy; {{ date('Y') }} POMS Report System · {{ config('poms.plant_name') }} · v1.0</p>
         </footer>
     </div>

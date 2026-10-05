@@ -15,7 +15,7 @@
         </a>
         <div>
             <h2 class="text-xl font-bold text-gray-800">{{ $stationLabel }}</h2>
-            <p class="text-sm text-gray-500">Data divalidasi otomatis sesuai rentang standar stasiun.</p>
+            <p class="text-sm text-gray-600">Data divalidasi otomatis sesuai rentang standar stasiun.</p>
         </div>
     </div>
 
@@ -45,7 +45,7 @@
                     <label for="f-{{ $name }}" class="mb-1 block text-sm font-medium text-gray-700">
                         {{ $field['label'] }}
                         @if($field['required'])<span class="text-red-500">*</span>@endif
-                        @if($field['unit'])<span class="text-gray-400">({{ $field['unit'] }})</span>@endif
+                        @if($field['unit'])<span class="text-gray-600">({{ $field['unit'] }})</span>@endif
                     </label>
 
                     @if($field['type'] === 'enum')
@@ -88,7 +88,7 @@
         </form>
     </div>
 
-    <p class="text-center text-xs text-gray-400">
+    <p class="text-center text-xs text-gray-600">
         <i class="fas fa-circle-info mr-1"></i>
         Data yang tersimpan akan berstatus <strong>Pending</strong> sampai diverifikasi asisten/atasan.
     </p>

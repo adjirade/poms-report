@@ -58,7 +58,7 @@
                 <form method="POST" action="{{ route('settings.kpi-targets.import') }}"
                       enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
                     @csrf
-                    <input type="file" name="file" accept=".csv,text/csv" required
+                    <input type="file" name="file" accept=".csv,text/csv" required aria-label="Pilih file CSV untuk diimpor"
                            class="input !min-h-0 !w-auto !py-1.5 text-xs">
                     <button type="submit" class="btn-primary">
                         <i class="fas fa-file-import"></i> Impor CSV
@@ -100,10 +100,10 @@
                         <tr class="border-b border-white/30 align-top">
                             <td class="px-3 py-2.5">
                                 <p class="font-semibold text-gray-800">{{ $p['label'] }}</p>
-                                <p class="font-mono text-[11px] text-gray-400">{{ $p['key'] }}</p>
+                                <p class="font-mono text-[11px] text-gray-600">{{ $p['key'] }}</p>
                             </td>
                             <td class="px-3 py-2.5">
-                                <select name="{{ $base }}[direction]" class="input !min-h-0 !py-1.5 text-xs">
+                                <select name="{{ $base }}[direction]" aria-label="{{ $p['label'] }} — arah target" class="input !min-h-0 !py-1.5 text-xs">
                                     @foreach($directionLabels as $value => $label)
                                         <option value="{{ $value }}" {{ $p['direction'] === $value ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
@@ -112,19 +112,23 @@
                             <td class="px-3 py-2.5">
                                 <input type="number" step="any" name="{{ $base }}[min]"
                                        value="{{ $p['min'] !== null ? $p['min'] : '' }}"
+                                       aria-label="{{ $p['label'] }} — nilai minimum"
                                        class="input !min-h-0 !w-24 !py-1.5 text-xs" placeholder="—">
                             </td>
                             <td class="px-3 py-2.5">
                                 <input type="number" step="any" name="{{ $base }}[max]"
                                        value="{{ $p['max'] !== null ? $p['max'] : '' }}"
+                                       aria-label="{{ $p['label'] }} — nilai maksimum"
                                        class="input !min-h-0 !w-24 !py-1.5 text-xs" placeholder="—">
                             </td>
                             <td class="px-3 py-2.5">
                                 <input type="text" name="{{ $base }}[unit]" value="{{ $p['unit'] }}"
+                                       aria-label="{{ $p['label'] }} — satuan"
                                        class="input !min-h-0 !w-20 !py-1.5 text-xs" placeholder="—">
                             </td>
                             <td class="px-3 py-2.5">
                                 <input type="text" name="{{ $base }}[label]" value="{{ $p['label'] }}"
+                                       aria-label="{{ $p['key'] }} — label tampilan"
                                        class="input !min-h-0 !w-40 !py-1.5 text-xs">
                             </td>
                             <td class="px-3 py-2.5">
@@ -149,7 +153,7 @@
         </div>
         @empty
         <div class="card card-pad">
-            <p class="text-sm text-gray-500">Belum ada stasiun dengan target terkonfigurasi.</p>
+            <p class="text-sm text-gray-600">Belum ada stasiun dengan target terkonfigurasi.</p>
         </div>
         @endforelse
 

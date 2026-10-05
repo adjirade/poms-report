@@ -140,7 +140,7 @@ class TelegramNotificationService
     {
         return implode("\n", [
             "🛠️ *Tiket Maintenance Baru*\n",
-            '*Mesin:* '.$ticket->kode_mesin,
+            '*Mesin:* `'.$ticket->kode_mesin.'`',
             '*Masalah:* '.$ticket->judul,
             '*Prioritas:* '.$ticket->priorityLabel(),
             '*Pelapor:* '.($ticket->reporter?->name ?? '-'),
@@ -153,7 +153,7 @@ class TelegramNotificationService
     {
         return implode("\n", [
             "🔧 *Status Tiket Maintenance Diperbarui*\n",
-            '*Mesin:* '.$ticket->kode_mesin,
+            '*Mesin:* `'.$ticket->kode_mesin.'`',
             '*Masalah:* '.$ticket->judul,
             '*Status:* '.$ticket->statusLabel(),
             '*ID Tiket:* #'.$ticket->id,

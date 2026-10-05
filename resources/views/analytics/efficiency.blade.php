@@ -11,7 +11,7 @@
         <div class="pointer-events-none absolute -left-16 -top-20 h-64 w-64 rounded-full bg-emerald-400/25 blur-3xl"></div>
         <div class="pointer-events-none absolute -right-16 -bottom-24 h-64 w-64 rounded-full bg-sky-400/25 blur-3xl"></div>
         <div class="relative">
-            <p class="mb-4 text-lg text-gray-500">Overall Efficiency Score</p>
+            <p class="mb-4 text-lg text-gray-600">Overall Efficiency Score</p>
             <div class="relative inline-block">
                 <svg class="h-48 w-48" viewBox="0 0 192 192">
                     <defs>
@@ -55,13 +55,13 @@
         @foreach($metrics as $m)
         <div class="card card-pad transition hover:-translate-y-0.5 hover:shadow-glass-lg">
             <div class="mb-2 flex items-center justify-between">
-                <p class="text-sm text-gray-500">{{ $m['label'] }}</p>
+                <p class="text-sm text-gray-600">{{ $m['label'] }}</p>
                 <span class="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br {{ $m['tile'] }} text-white shadow-float">
                     <i class="fas {{ $m['icon'] }} text-sm"></i>
                 </span>
             </div>
             <p class="text-3xl font-bold text-gray-800">{{ $m['value'] }}</p>
-            <p class="mt-1 text-xs text-gray-500">{{ $m['unit'] }}</p>
+            <p class="mt-1 text-xs text-gray-600">{{ $m['unit'] }}</p>
             <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/60 shadow-inner">
                 <div class="h-2 rounded-full bg-gradient-to-r {{ $m['bar'] }}" style="width: {{ $m['pct'] }}%"></div>
             </div>
@@ -72,20 +72,20 @@
     {{-- Performance Charts --}}
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div class="card card-pad">
-            <h3 class="mb-4 text-lg font-bold text-gray-800">
+            <h2 class="mb-4 text-lg font-bold text-gray-800">
                 <i class="fas fa-chart-line mr-2 text-sky-600"></i>
                 Press Performance (Last 7 Days)
-            </h3>
+            </h2>
             <div class="relative" style="height: 280px;">
                 <canvas id="pressChart"></canvas>
             </div>
         </div>
 
         <div class="card card-pad">
-            <h3 class="mb-4 text-lg font-bold text-gray-800">
+            <h2 class="mb-4 text-lg font-bold text-gray-800">
                 <i class="fas fa-chart-line mr-2 text-red-500"></i>
                 Sterilizer Performance (Last 7 Days)
-            </h3>
+            </h2>
             <div class="relative" style="height: 280px;">
                 <canvas id="sterilizerChart"></canvas>
             </div>
@@ -96,7 +96,7 @@
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div class="card overflow-hidden">
             <div class="border-b border-white/50 px-6 py-4">
-                <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-compress mr-2 text-sky-600"></i>Press Station Data</h3>
+                <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-compress mr-2 text-sky-600"></i>Press Station Data</h2>
             </div>
             <div class="max-h-96 overflow-x-auto">
                 <table class="glass-table w-full text-sm">
@@ -122,7 +122,7 @@
 
         <div class="card overflow-hidden">
             <div class="border-b border-white/50 px-6 py-4">
-                <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-fire mr-2 text-red-500"></i>Sterilizer Station Data</h3>
+                <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-fire mr-2 text-red-500"></i>Sterilizer Station Data</h2>
             </div>
             <div class="max-h-96 overflow-x-auto">
                 <table class="glass-table w-full text-sm">

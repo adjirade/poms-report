@@ -9,6 +9,7 @@ use App\Models\LogSterilizer;
 use App\Models\LogTimbang;
 use App\Models\MaintenanceTicket;
 use App\Services\CommandCenterService;
+use App\Services\DailyRecapService;
 use App\Services\StationAnalyticsService;
 use App\Services\ValidationService;
 use App\Support\StationChartConfig;
@@ -170,6 +171,36 @@ class ExportController extends Controller
             ->setOption(['isPhpEnabled' => true, 'defaultFont' => 'Arial']);
 
         $filename = "command_center_{$user->plant_id}_".now()->format('Ymd_His').'.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * PDF Rekap Mingguan (plant-wide): sumber data & view yang sama dengan
+     * PDF yang dikirim bot (/pdf_mingguan) — DailyRecapService::weeklySummary
+     * + exports.weekly-report-pdf. Mendukung dua periode seperti halaman web:
+     * ?periode=7d (default) atau minggu_lalu (Senin–Minggu sebelumnya).
+     */
+    public function weeklyRecapPdf(Request $request, DailyRecapService $recap)
+    {
+        $periode = $request->query('periode') === 'minggu_lalu' ? 'minggu_lalu' : '7d';
+
+        [$start, $end] = $periode === 'minggu_lalu'
+            ? DailyRecapService::lastWeekRange(now())
+            : [now()->subDays(6)->startOfDay(), now()->endOfDay()];
+
+        $user = auth()->user();
+        $summary = $recap->weeklySummary($user->plant_id, $start, $end);
+
+        $pdf = Pdf::loadView('exports.weekly-report-pdf', [
+            'summary' => $summary,
+            'plant' => $user->plant_id,
+            'preparedBy' => $user->name,
+        ])
+            ->setPaper(config('export.paper_size', env('EXPORT_PAPER_SIZE', 'a4')), 'portrait')
+            ->setOption(['isPhpEnabled' => true, 'defaultFont' => 'Arial']);
+
+        $filename = "weekly_recap_{$user->plant_id}_{$summary['start']->format('Ymd')}_{$summary['end']->format('Ymd')}.pdf";
 
         return $pdf->download($filename);
     }

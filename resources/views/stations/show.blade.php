@@ -31,7 +31,7 @@
                     Tren Harian — {{ $stationTitle }} (30 hari)
                 </h2>
                 <div class="flex items-center gap-2">
-                    <span class="hidden text-xs text-gray-500 sm:inline">
+                    <span class="hidden text-xs text-gray-600 sm:inline">
                         <i class="fas fa-arrows-left-right"></i> Drag area untuk zoom &middot; Ctrl+scroll
                     </span>
                     <button type="button" onclick="PomsStationChart && PomsStationChart.reset('stationTabChart')"
@@ -48,7 +48,7 @@
                 <canvas id="stationTabChart" role="img"
                         aria-label="Grafik garis tren harian {{ $stationTitle }} selama 30 hari terakhir"></canvas>
             </div>
-            <p class="mt-3 text-xs text-gray-500">
+            <p class="mt-3 text-xs text-gray-600">
                 Nilai adalah rata-rata harian semua parameter stasiun. Detail per record tersedia di
                 <a href="{{ route('analytics.station-performance', ['station' => $station, 'range' => 30]) }}" class="font-semibold text-green-700 underline decoration-green-300">halaman Performa Stasiun</a>.
             </p>
@@ -66,7 +66,7 @@
                 </div>
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">{{ $title }}</h2>
-                    <p class="text-sm text-gray-500">Data logging untuk stasiun {{ strtoupper($station) }}</p>
+                    <p class="text-sm text-gray-600">Data logging untuk stasiun {{ strtoupper($station) }}</p>
                 </div>
             </div>
 
@@ -76,16 +76,16 @@
             <form method="GET" class="flex w-full flex-col gap-3 lg:w-auto lg:flex-row lg:items-center">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <input type="date" name="date_from" value="{{ now()->startOfDay()->format('Y-m-d') }}" aria-label="Tanggal mulai" class="input sm:w-40">
-                    <span class="hidden text-sm text-gray-500 sm:inline">s/d</span>
+                    <span class="hidden text-sm text-gray-600 sm:inline">s/d</span>
                     <input type="date" name="date_to" value="{{ now()->endOfDay()->format('Y-m-d') }}" aria-label="Tanggal akhir" class="input sm:w-40">
                 </div>
                 <div class="flex gap-2">
                     <button type="submit" formaction="{{ route('export.pdf', $station) }}"
-                            class="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-float transition hover:brightness-105 active:scale-[0.98] sm:flex-none">
+                            class="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-rose-600 to-red-700 px-4 py-2 text-sm font-semibold text-white shadow-float transition hover:brightness-105 active:scale-[0.98] sm:flex-none">
                         <i class="fas fa-file-pdf"></i>PDF
                     </button>
                     <button type="submit" formaction="{{ route('export.excel', $station) }}"
-                            class="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-700 px-4 py-2 text-sm font-semibold text-white shadow-float transition hover:brightness-105 active:scale-[0.98] sm:flex-none">
+                            class="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-700 to-green-800 px-4 py-2 text-sm font-semibold text-white shadow-float transition hover:brightness-105 active:scale-[0.98] sm:flex-none">
                         <i class="fas fa-file-excel"></i>Excel
                     </button>
                 </div>

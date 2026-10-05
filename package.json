@@ -3,7 +3,10 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "audit:ui": "node scripts/ui-audit/ui-audit.mjs",
+        "audit:ui:summary": "node scripts/ui-audit/ui-summary.mjs",
+        "audit:ui:gate": "node scripts/ui-audit/ui-gate.mjs"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.7",

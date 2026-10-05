@@ -32,3 +32,6 @@ bootstrap/cache/*.php
 
 # HQ sync simulation artifacts
 /storage/sim/
+
+# Hasil audit UI (artifact CI / lokal)
+scripts/ui-audit/results/

@@ -63,7 +63,7 @@
         <form method="POST" action="{{ route('maintenance.tickets.store') }}" class="grid grid-cols-1 gap-4 md:grid-cols-2">
             @csrf
             <div>
-                <label for="kode_mesin" class="mb-1 block text-xs font-semibold text-gray-600">Kode Mesin <span class="text-rose-600">*</span></label>
+                <label for="kode_mesin" class="mb-1 block text-xs font-semibold text-gray-600">Kode Mesin <span class="text-rose-700">*</span></label>
                 <input id="kode_mesin" type="text" name="kode_mesin" value="{{ old('kode_mesin') }}"
                        class="input" placeholder="mis. KERNEL-01 / PRESS-02" required>
                 @error('kode_mesin')<p class="mt-1 text-xs text-rose-700">{{ $message }}</p>@enderror
@@ -77,13 +77,13 @@
                 </select>
             </div>
             <div class="md:col-span-2">
-                <label for="judul" class="mb-1 block text-xs font-semibold text-gray-600">Judul Masalah <span class="text-rose-600">*</span></label>
+                <label for="judul" class="mb-1 block text-xs font-semibold text-gray-600">Judul Masalah <span class="text-rose-700">*</span></label>
                 <input id="judul" type="text" name="judul" value="{{ old('judul') }}"
                        class="input" placeholder="mis. Kebocoran steam pada valve rebusan" required>
                 @error('judul')<p class="mt-1 text-xs text-rose-700">{{ $message }}</p>@enderror
             </div>
             <div class="md:col-span-2">
-                <label for="deskripsi" class="mb-1 block text-xs font-semibold text-gray-600">Deskripsi <span class="text-rose-600">*</span></label>
+                <label for="deskripsi" class="mb-1 block text-xs font-semibold text-gray-600">Deskripsi <span class="text-rose-700">*</span></label>
                 <textarea id="deskripsi" name="deskripsi" rows="3" class="input" placeholder="Detail kerusakan, gejala, dan dampak terhadap operasi" required>{{ old('deskripsi') }}</textarea>
                 @error('deskripsi')<p class="mt-1 text-xs text-rose-700">{{ $message }}</p>@enderror
             </div>
@@ -112,7 +112,7 @@
             </div>
             <button type="submit" class="btn-ghost"><i class="fas fa-filter"></i> Terapkan</button>
             @if($status !== '' || $mesin !== '')
-                <a href="{{ route('maintenance.tickets') }}" class="text-xs text-gray-500 underline">Reset</a>
+                <a href="{{ route('maintenance.tickets') }}" class="text-xs text-gray-600 underline">Reset</a>
             @endif
         </form>
     </div>
@@ -137,15 +137,15 @@
                 <tbody>
                     @forelse($tickets as $ticket)
                     <tr class="border-b border-white/30 align-top">
-                        <td class="px-3 py-2.5 font-mono text-xs text-gray-500">#{{ $ticket->id }}</td>
+                        <td class="px-3 py-2.5 font-mono text-xs text-gray-600">#{{ $ticket->id }}</td>
                         <td class="px-3 py-2.5 font-semibold text-gray-800">{{ $ticket->kode_mesin }}</td>
                         <td class="px-3 py-2.5">
                             <p class="font-semibold text-gray-800">{{ $ticket->judul }}</p>
-                            <p class="mt-0.5 text-xs text-gray-500">{{ $ticket->deskripsi }}</p>
+                            <p class="mt-0.5 text-xs text-gray-600">{{ $ticket->deskripsi }}</p>
                             @if($ticket->resolution_note)
                                 <p class="mt-1 text-xs text-emerald-700"><i class="fas fa-check mr-1"></i>{{ $ticket->resolution_note }}</p>
                             @endif
-                            <p class="mt-1 text-[11px] text-gray-400">{{ $ticket->created_at?->format('d/m/Y H:i') }}</p>
+                            <p class="mt-1 text-[11px] text-gray-600">{{ $ticket->created_at?->format('d/m/Y H:i') }}</p>
                         </td>
                         <td class="px-3 py-2.5">
                             <span class="badge {{ $priorityBadge[$ticket->prioritas] ?? 'badge-muted' }}">{{ $ticket->priorityLabel() }}</span>
@@ -153,7 +153,7 @@
                         <td class="px-3 py-2.5">
                             <span class="badge {{ $statusBadge[$ticket->status] ?? 'badge-muted' }}">{{ $ticket->statusLabel() }}</span>
                             @if($ticket->resolved_at)
-                                <p class="mt-1 text-[11px] text-gray-400">selesai {{ $ticket->resolved_at->format('d/m H:i') }}</p>
+                                <p class="mt-1 text-[11px] text-gray-600">selesai {{ $ticket->resolved_at->format('d/m H:i') }}</p>
                             @endif
                         </td>
                         <td class="px-3 py-2.5 text-xs text-gray-600">{{ $ticket->reporter?->name ?? '—' }}</td>
@@ -179,13 +179,13 @@
                                 <button type="submit" class="btn-primary !min-h-0 !py-1 text-xs"><i class="fas fa-save"></i> Simpan</button>
                             </form>
                             @else
-                                <span class="text-xs text-gray-400">—</span>
+                                <span class="text-xs text-gray-600">—</span>
                             @endcan
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-3 py-6 text-center text-sm text-gray-500">Belum ada tiket maintenance.</td>
+                        <td colspan="8" class="px-3 py-6 text-center text-sm text-gray-600">Belum ada tiket maintenance.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -205,10 +205,10 @@
         <ul class="space-y-2">
             @foreach($history as $row)
             <li class="flex flex-wrap items-center gap-2 border-b border-white/30 pb-2 text-sm">
-                <span class="font-mono text-xs text-gray-500">#{{ $row->id }}</span>
+                <span class="font-mono text-xs text-gray-600">#{{ $row->id }}</span>
                 <span class="badge {{ $statusBadge[$row->status] ?? 'badge-muted' }}">{{ $row->statusLabel() }}</span>
                 <span class="text-gray-700">{{ $row->judul }}</span>
-                <span class="text-xs text-gray-400">{{ $row->created_at?->format('d/m/Y H:i') }}</span>
+                <span class="text-xs text-gray-600">{{ $row->created_at?->format('d/m/Y H:i') }}</span>
             </li>
             @endforeach
         </ul>

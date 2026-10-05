@@ -191,6 +191,10 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
         Route::get('/command-center', [ExportController::class, 'commandCenterPdf'])
             ->name('command-center');
 
+        // PDF Rekap Mingguan (sumber data & view sama dengan PDF bot).
+        Route::get('/weekly-recap', [ExportController::class, 'weeklyRecapPdf'])
+            ->name('weekly-recap');
+
         // B3 — Laporan tiket maintenance per mesin (arsip workshop).
         Route::get('/maintenance-tickets', [ExportController::class, 'maintenanceTicketsPdf'])
             ->name('maintenance-tickets');
@@ -229,6 +233,7 @@ Route::middleware(['auth', 'can:access-web'])->group(function () {
     // Analytics (Askep and above)
     Route::middleware('can:access-full-dashboard')->prefix('analytics')->name('analytics.')->group(function () {
         Route::get('/command-center', [DashboardController::class, 'commandCenter'])->name('command-center');
+        Route::get('/weekly-recap', [DashboardController::class, 'weeklyRecap'])->name('weekly-recap');
         Route::get('/overview', [DashboardController::class, 'analytics'])->name('overview');
         Route::get('/losses', [DashboardController::class, 'losses'])->name('losses');
         Route::get('/efficiency', [DashboardController::class, 'efficiency'])->name('efficiency');

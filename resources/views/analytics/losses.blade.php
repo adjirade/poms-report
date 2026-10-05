@@ -20,9 +20,9 @@
             <div class="pointer-events-none absolute -right-8 -top-10 h-24 w-24 rounded-full bg-gradient-to-br {{ $k['tile'] }} opacity-20 blur-2xl transition group-hover:opacity-35"></div>
             <div class="relative flex items-start justify-between">
                 <div>
-                    <p class="mb-2 text-sm text-gray-500">{{ $k['label'] }}</p>
+                    <p class="mb-2 text-sm text-gray-600">{{ $k['label'] }}</p>
                     <p class="text-4xl font-bold text-gray-800">{{ $k['value'] }}</p>
-                    <p class="mt-2 text-xs text-gray-400">{{ $k['target'] }}</p>
+                    <p class="mt-2 text-xs text-gray-600">{{ $k['target'] }}</p>
                 </div>
                 <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br {{ $k['tile'] }} text-white shadow-float">
                     <i class="fas {{ $k['icon'] }}"></i>
@@ -34,10 +34,10 @@
     
     <!-- Losses Trend Chart -->
     <div class="card card-pad">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">
             <i class="fas fa-chart-area text-red-600 mr-2"></i>
             Losses Trend (14 Days)
-        </h3>
+        </h2>
         <div class="relative" style="height: 280px;">
             <canvas id="lossesTrendChart"></canvas>
         </div>
@@ -46,10 +46,10 @@
     <!-- Detailed Lab Data Table -->
     <div class="card">
         <div class="border-b border-white/50 px-6 py-4">
-            <h3 class="text-lg font-bold text-gray-800">
+            <h2 class="text-lg font-bold text-gray-800">
                 <i class="fas fa-flask mr-2 text-sky-600"></i>
                 Lab Quality Control Data (Last 30 Days)
-            </h3>
+            </h2>
         </div>
         
         <div class="overflow-x-auto">
@@ -98,7 +98,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-600">
                             No lab data available
                         </td>
                     </tr>

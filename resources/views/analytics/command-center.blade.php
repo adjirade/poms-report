@@ -26,34 +26,34 @@
     <!-- KPI utama hari ini -->
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-6">
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Record Hari Ini</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">Record Hari Ini</p>
             <p class="mt-1 text-2xl font-bold text-gray-800">{{ number_format($kpi['records_today']) }}</p>
         </div>
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Tonnage Bruto (ton)</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">Tonnage Bruto (ton)</p>
             <p class="mt-1 text-2xl font-bold text-blue-700">{{ number_format($kpi['tonnage_today'], 2) }}</p>
         </div>
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">FFA / ALB CPO (%)</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">FFA / ALB CPO (%)</p>
             <p class="mt-1 text-2xl font-bold {{ ($kpi['ffa_today'] ?? 0) > 5 ? 'text-rose-700' : 'text-emerald-700' }}">
                 {{ $kpi['ffa_today'] !== null ? number_format($kpi['ffa_today'], 2) : '—' }}
             </p>
         </div>
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Losses Fiber (%)</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">Losses Fiber (%)</p>
             <p class="mt-1 text-2xl font-bold {{ ($kpi['losses_fiber_today'] ?? 0) > 5 ? 'text-rose-700' : 'text-emerald-700' }}">
                 {{ $kpi['losses_fiber_today'] !== null ? number_format($kpi['losses_fiber_today'], 2) : '—' }}
             </p>
         </div>
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Skor Efisiensi</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">Skor Efisiensi</p>
             <p class="mt-1 text-2xl font-bold text-purple-700">{{ $kpi['efficiency'] }}/100</p>
         </div>
         <div class="card card-pad">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">🚩 Flagged / ⌛ Pending</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">🚩 Flagged / ⌛ Pending</p>
             <p class="mt-1 text-2xl font-bold text-gray-800">
                 <span class="text-rose-700">{{ number_format($kpi['flagged_today']) }}</span>
-                <span class="text-gray-400">/</span>
+                <span class="text-gray-600">/</span>
                 <span class="text-amber-700">{{ number_format($kpi['unverified_today']) }}</span>
             </p>
         </div>
@@ -66,10 +66,10 @@
                 <i class="fas fa-bullseye text-green-700 mr-2"></i>
                 Target vs Realisasi — Hari Ini
             </h2>
-            <span class="text-xs text-gray-500">Rata-rata parameter hari ini</span>
+            <span class="text-xs text-gray-600">Rata-rata parameter hari ini</span>
         </div>
         @if(count($kpiTargets) === 0)
-            <p class="text-sm text-gray-500">Belum ada target KPI terkonfigurasi.</p>
+            <p class="text-sm text-gray-600">Belum ada target KPI terkonfigurasi.</p>
         @else
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach($kpiTargets as $t)
@@ -82,7 +82,7 @@
                 <div class="flex items-start justify-between gap-2">
                     <div>
                         <p class="text-sm font-semibold text-gray-800">{{ $t['label'] }}</p>
-                        <p class="text-xs text-gray-500">Target {{ $t['target_text'] }} @if($t['unit']){{ $t['unit'] }}@endif</p>
+                        <p class="text-xs text-gray-600">Target {{ $t['target_text'] }} @if($t['unit']){{ $t['unit'] }}@endif</p>
                     </div>
                     @if($none)
                         <span class="badge badge-muted">— Data</span>
@@ -92,9 +92,9 @@
                         <span class="badge border-rose-200 bg-rose-100 text-rose-800">✗ Belum</span>
                     @endif
                 </div>
-                <p class="mt-2 text-2xl font-bold {{ $none ? 'text-gray-500' : ($ok ? 'text-emerald-700' : 'text-rose-700') }}">
+                <p class="mt-2 text-2xl font-bold {{ $none ? 'text-gray-600' : ($ok ? 'text-emerald-700' : 'text-rose-700') }}">
                     {{ $t['actual'] !== null ? number_format($t['actual'], 2) : '—' }}
-                    @if($t['unit'])<span class="text-sm font-medium text-gray-500">{{ $t['unit'] }}</span>@endif
+                    @if($t['unit'])<span class="text-sm font-medium text-gray-600">{{ $t['unit'] }}</span>@endif
                 </p>
                 <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200"
                      role="progressbar" aria-valuenow="{{ $t['progress'] }}" aria-valuemin="0" aria-valuemax="100"
@@ -162,7 +162,7 @@
                 <i class="fas fa-bell text-rose-600 mr-2"></i>
                 Alert Flagged Terbaru
             </h2>
-            <a href="{{ route('flagged.records') }}" class="text-sm font-medium text-green-700 hover:underline">Lihat semua →</a>
+            <a href="{{ route('flagged.records') }}" class="inline-flex items-center py-1 text-sm font-medium text-green-700 hover:underline">Lihat semua →</a>
         </div>
         <ul class="space-y-2">
             @forelse($recentAlerts as $alert)
@@ -171,7 +171,7 @@
                     <span class="badge border-rose-200 bg-rose-100 text-rose-800">{{ ucfirst($alert['station']) }} #{{ $alert['id'] }}</span>
                     <span class="ml-2 text-sm text-gray-700">{{ $alert['user'] }}</span>
                 </div>
-                <div class="flex items-center gap-3 text-xs text-gray-500">
+                <div class="flex items-center gap-3 text-xs text-gray-600">
                     <span><i class="far fa-clock"></i> {{ $alert['at']?->format('d/m H:i') }}</span>
                     @if($alert['diff'])<span><i class="fas fa-stopwatch"></i> {{ $alert['diff'] }} jam</span>@endif
                     @if($alert['verified'])
