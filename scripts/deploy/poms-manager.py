@@ -110,10 +110,10 @@ SCAN_EXCLUDE = {"node_modules", "vendor", "storage", ".git", "tests",
 # --------------------------------------------------------------- win32 helpers
 DWORD = c_ulong
 
-SC_MANAGER_CONNECT  = 0x0001
+SC_MANAGER_CONNECT   = 0x0001
 SERVICE_QUERY_STATUS = 0x0004
 SERVICE_START        = 0x0010
-SERVICE_STOP         = 0x0002
+SERVICE_STOP         = 0x0020   # PENTING: 0x0020 (0x0002 = SERVICE_CHANGE_CONFIG!)
 SERVICE_CONTROL_STOP = 0x0001
 
 STATE_NOT_INSTALLED = 0        # sentinel internal
@@ -133,8 +133,8 @@ STATE_TEXT = {
 
 _is_nt = os.name == "nt"
 if _is_nt:
-    _adv = ctypes.WinDLL("advapi32.dll")
-    _k32 = ctypes.WinDLL("kernel32.dll")
+    _adv = ctypes.WinDLL("advapi32.dll", use_last_error=True)
+    _k32 = ctypes.WinDLL("kernel32.dll", use_last_error=True)
     _shell32 = ctypes.windll.shell32
 
     class SERVICE_STATUS(Structure):
@@ -187,7 +187,7 @@ def query_service(name: str):
     try:
         h = _adv.OpenServiceW(scm, name, SERVICE_QUERY_STATUS)
         if not h:
-            return (STATE_NOT_INSTALLED, 0) if _k32.GetLastError() == 1060 \
+            return (STATE_NOT_INSTALLED, 0) if ctypes.get_last_error() == 1060 \
                 else (STATE_ERROR, 0)
         ssp = SERVICE_STATUS_PROCESS()
         needed = DWORD(0)
@@ -211,14 +211,14 @@ def svc_start(name: str) -> None:
     try:
         h = _adv.OpenServiceW(scm, name, SERVICE_START)
         if not h:
-            err = _k32.GetLastError()
+            err = ctypes.get_last_error()
             if err == 1060:
                 raise ServiceError("layanan belum terpasang", err)
             if err == 5:
                 raise ServiceError("akses ditolak (butuh Administrator)", err)
             raise ServiceError(f"gagal membuka layanan (error {err})", err)
         if not _adv.StartServiceW(h, 0, None):
-            err = _k32.GetLastError()
+            err = ctypes.get_last_error()
             if err == 1056:                     # sudah berjalan
                 return
             if err == 5:
@@ -240,7 +240,7 @@ def svc_stop(name: str) -> None:
     try:
         h = _adv.OpenServiceW(scm, name, SERVICE_STOP)
         if not h:
-            err = _k32.GetLastError()
+            err = ctypes.get_last_error()
             if err == 1060:
                 raise ServiceError("layanan belum terpasang", err)
             if err == 5:
@@ -248,7 +248,7 @@ def svc_stop(name: str) -> None:
             raise ServiceError(f"gagal membuka layanan (error {err})", err)
         st = SERVICE_STATUS()
         if not _adv.ControlService(h, SERVICE_CONTROL_STOP, byref(st)):
-            err = _k32.GetLastError()
+            err = ctypes.get_last_error()
             if err == 1062:                     # memang sudah mati
                 return
             if err == 5:
@@ -504,7 +504,7 @@ class App:
         if not self.opts.smoke:
             self._mutex = _k32.CreateMutexW(None, False,
                                             "POMS-Service-Manager-Mutex")
-            if _k32.GetLastError() == 183:               # ERROR_ALREADY_EXISTS
+            if ctypes.get_last_error() == 183:               # ERROR_ALREADY_EXISTS
                 messagebox.showwarning(
                     "POMS Service Manager",
                     "Aplikasi sudah berjalan di jendela lain.")
@@ -546,6 +546,11 @@ class App:
 
         self._act("\U0001F33F POMS Service Manager siap "
                   f"(project: {self.root_dir})", "ok")
+        self._act(f"\U0001F6E1 Hak proses: "
+                  f"{'ADMIN \u2713' if is_admin() else 'MONITOR (non-admin)'}"
+                  + ("" if is_admin() else
+                     " \u2014 aksi layanan lewat UAC per klik; watchdog "
+                     "auto-restart tidak aktif"), "info")
         if not self.php:
             self._act("PHP tidak ditemukan \u2014 set variabel POMS_PHP ke "
                       "php.exe", "err")
