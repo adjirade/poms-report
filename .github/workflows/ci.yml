@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
@@ -24,10 +24,10 @@ jobs:
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_sqlite, sqlite3, gd, exif, iconv
           coverage: none
 
-      - name: Setup Node 20 (untuk vite build)
-        uses: actions/setup-node@v4
+      - name: Setup Node (untuk vite build)
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install dependencies composer
         run: composer install --prefer-dist --no-interaction --no-progress
@@ -68,7 +68,7 @@ jobs:
     needs: tests
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
@@ -77,10 +77,10 @@ jobs:
           extensions: dom, curl, libxml, mbstring, zip, pdo, pdo_sqlite, sqlite3, gd, iconv
           coverage: none
 
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install dependencies composer
         run: composer install --prefer-dist --no-interaction --no-progress
@@ -131,6 +131,18 @@ jobs:
           done
           curl -sf http://127.0.0.1:8000/login > /dev/null || (echo "Server tidak siap" && exit 1)
 
+      - name: Tunggu Chrome CDP siap
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:9222/json/version > /dev/null 2>&1; then
+              echo "Chrome CDP siap"
+              break
+            fi
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:9222/json/version > /dev/null 2>&1 || \
+            (echo "Chrome CDP tidak siap (port 9222)" && exit 1)
+
       - name: Buat user audit
         run: php scripts/ui-audit/audit-users.php
 
@@ -146,7 +158,7 @@ jobs:
 
       - name: Upload bukti audit (hasil + screenshot)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ui-audit-results
           path: scripts/ui-audit/results/
