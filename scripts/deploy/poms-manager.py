@@ -17,7 +17,8 @@
                           `php artisan config:clear` + `php artisan optimize`
                           lalu restart layanan yang memegang kode lama.
    4. Log realtime      : tab per log (service-*.log + laravel.log) untuk
-                          debug/troubleshooting, baris ERROR disorot merah.
+                          debug/troubleshooting, baris ERROR disorot merah;
+                          tombol "Log lama…" membuka arsip rotasi lama NSSM.
 
  Cara pakai (dari folder project):
      python scripts/deploy/poms-manager.py            # buka GUI
@@ -35,6 +36,7 @@ import argparse
 import ctypes
 import os
 import queue
+import re
 import shutil
 import subprocess
 import sys
@@ -349,6 +351,44 @@ def log_paths(project: Path):
             ("poll", base / "service-poll.log"),
             ("web", base / "service-web.log"),
             ("laravel", base / "laravel.log")]
+
+
+_ROTATED_RE = re.compile(r"^service-(.+)-(\d{8}T\d{6}(?:\.\d+)?)\.log$")
+
+
+def rotated_logs(project: Path):
+    """Daftar file log rotasi lama NSSM (service-<slug>-YYYYMMDDTHHMMSS.log).
+
+    Return list (slug, timestamp, path, size) diurutkan terbaru lebih dulu.
+    """
+    base = Path(project) / "storage" / "logs"
+    out = []
+    try:
+        for p in base.glob("service-*.log"):
+            m = _ROTATED_RE.match(p.name)
+            if not m:
+                continue
+            try:
+                size = p.stat().st_size
+            except OSError:
+                continue
+            out.append((m.group(1), m.group(2), p, size))
+    except OSError:
+        pass
+    out.sort(key=lambda r: r[1], reverse=True)
+    return out
+
+
+def fmt_size(n: int) -> str:
+    """Ukuran file dalam bentuk manusiawi (B/KB/MB/GB)."""
+    if n < 1024:
+        return f"{n} B"
+    n = float(n)
+    for unit in ("KB", "MB", "GB"):
+        n /= 1024.0
+        if n < 1024:
+            return f"{n:.1f} {unit}"
+    return f"{n:.1f} GB"
 
 
 def build_fingerprint(project: Path) -> dict:
@@ -823,6 +863,8 @@ class App:
                  font=("Segoe UI", 9, "bold")).pack(side="left")
         self._mkbtn(tool, "Bersihkan", self._clear_active_tab, "ghost",
                     small=True)
+        self._mkbtn(tool, "Log lama\u2026", self._show_old_logs, "ghost",
+                    small=True)
         self._mkbtn(tool, "Buka folder log",
                     lambda: self._open_log_dir(), "ghost", small=True)
         cb = tk.Checkbutton(tool, text="Auto-scroll",
@@ -906,6 +948,112 @@ class App:
         p = self.root_dir / "storage" / "logs"
         if p.exists():
             os.startfile(str(p))                                  # noqa: S606
+
+    # ------------------------------------------------------- log rotasi lama
+    @staticmethod
+    def _fmt_ts(ts: str):
+        """'20261005T143207.123' -> '2026-10-05 14:32:07'."""
+        try:
+            return datetime.strptime(ts.split(".")[0], "%Y%m%dT%H%M%S") \
+                .strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            return ts
+
+    def _show_old_logs(self):
+        """Dialog daftar file log rotasi lama NSSM + pembuka viewer."""
+        items = rotated_logs(self.root_dir)
+        win = tk.Toplevel(self.root)
+        win.title("Log rotasi lama \u2014 POMS")
+        win.configure(bg=C_BG)
+        win.geometry("780x420")
+        win.transient(self.root)
+
+        head = tk.Frame(win, bg=C_BG)
+        head.pack(fill="x", padx=14, pady=(12, 6))
+        tk.Label(head, text="\U0001F5C2 Log rotasi lama (NSSM)", bg=C_BG, fg=C_FG,
+                 font=("Segoe UI", 11, "bold")).pack(side="left")
+        tk.Label(head,
+                 text=(f"{len(items)} file \u00b7 klik ganda / pilih lalu 'Buka'"
+                       if items else "belum ada file rotasi lama"),
+                 bg=C_BG, fg=C_FG_DIM, font=("Segoe UI", 8)).pack(side="right")
+
+        lb = tk.Listbox(win, bg=C_LOG_BG, fg="#c9e8d6",
+                        selectbackground=C_ACCENT, selectforeground="#ffffff",
+                        font=("Consolas", 9), relief="flat",
+                        highlightthickness=0, activestyle="none")
+        scroll = ttk.Scrollbar(win, command=lb.yview)
+        lb.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y", padx=(0, 10), pady=(0, 8))
+        lb.pack(fill="both", expand=True, padx=(14, 0), pady=(0, 8))
+
+        for slug, ts, path, size in items:
+            lb.insert("end", f"  {self._fmt_ts(ts)}   {slug:<9}"
+                             f" {fmt_size(size):>9}   {path.name}")
+        if not items:
+            lb.insert("end",
+                      "  (tidak ditemukan file service-*-YYYYMMDDT*.log)")
+            lb.configure(state="disabled")
+
+        def _open(_event=None):
+            sel = lb.curselection()
+            if sel and items:
+                self._view_old_log(*items[sel[0]])
+
+        btns = tk.Frame(win, bg=C_BG)
+        btns.pack(fill="x", padx=14, pady=(0, 12))
+        self._mkbtn(btns, "Buka", _open, "primary", small=True)
+        self._mkbtn(btns, "Tutup", win.destroy, "ghost", small=True)
+        lb.bind("<Double-Button-1>", _open)
+        lb.bind("<Return>", _open)
+        if items:
+            lb.selection_set(0)
+        lb.focus_set()
+
+    def _view_old_log(self, slug, ts, path, size):
+        """Tampilkan isi satu file log rotasi lama (readonly, bertema sama)."""
+        win = tk.Toplevel(self.root)
+        win.title(f"Log lama \u00b7 {slug} \u2014 {path.name}")
+        win.configure(bg=C_LOG_BG)
+        win.geometry("920x560")
+        win.transient(self.root)
+
+        head = tk.Frame(win, bg=C_BG_CARD)
+        head.pack(fill="x")
+        tk.Label(head, text=f"\U0001F4C4 {path.name}", bg=C_BG_CARD, fg=C_FG,
+                 font=("Segoe UI", 9,
+                       "bold")).pack(side="left", padx=12, pady=8)
+        tk.Label(head,
+                 text=f"{slug} \u00b7 {self._fmt_ts(ts)} \u00b7 {fmt_size(size)}",
+                 bg=C_BG_CARD, fg=C_FG_DIM,
+                 font=("Segoe UI", 8)).pack(side="right", padx=12)
+
+        txt = tk.Text(win, bg=C_LOG_BG, fg="#c9e8d6", insertbackground=C_FG,
+                      font=("Consolas", 9), wrap="none", state="disabled",
+                      relief="flat", padx=10, pady=8, spacing1=1, undo=False)
+        for tag, col in (("err", C_ERR), ("warn", C_AMBER), ("ok", C_OK),
+                         ("dim", "#7a9e8b")):
+            txt.tag_configure(tag, foreground=col)
+        scroll = ttk.Scrollbar(win, command=txt.yview)
+        txt.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        txt.pack(side="left", fill="both", expand=True)
+
+        max_bytes = 2_000_000     # batas tampilan agar GUI tetap responsif
+        try:
+            data = path.read_bytes()
+            note = ""
+            if len(data) > max_bytes:
+                data = data[-max_bytes:]
+                note = ("[ditampilkan 2 MB terakhir dari file yang "
+                        "lebih besar]\n")
+            lines = (note + data.decode("utf-8", "replace")).splitlines()
+        except OSError as e:
+            lines = [f"[gagal membaca file: {e}]"]
+        txt.configure(state="normal")
+        for line in lines:
+            tag = self._line_tag(line)
+            txt.insert("end", line + "\n", (tag,) if tag else ())
+        txt.configure(state="disabled")
 
     # ------------------------------------------------------------ uiq draining
     def _drain_once(self):
@@ -1343,6 +1491,7 @@ def run_selftest(opts) -> int:
     print(f"Web        : {'OK ' + str(code) + f' ({ms} ms)' if ok else 'GAGAL: ' + str(err)}")
     logs = sum(1 for _, p in log_paths(Path(opts.project)) if Path(p).exists())
     print(f"Log files  : {logs}/5 ditemukan")
+    print(f"Log rotasi : {len(rotated_logs(Path(opts.project)))} file lama ditemukan")
     fp = build_fingerprint(Path(opts.project))
     print(f"Pantau kode: {len(fp)} file dalam fingerprint")
     print("Selftest selesai.")

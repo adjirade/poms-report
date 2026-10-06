@@ -102,6 +102,7 @@ emerald POMS untuk mengelola 4 layanan NSSM dari satu jendela:
 - **Web watchdog**: probe `APP_URL` tiap siklus; gagal 3× → bersihkan proses `php -S` zombie (parent mati); gagal 7× → restart `poms-web` (cooldown 120 dtk).
 - **Auto-optimize**: perubahan `.env`/`app`/`config`/`routes`/`resources/views`/migrations → debounce 4 dtk → `config:clear` + `optimize` → restart queue+poll+schedule (web ikut bila `.env` berubah). Migrasi/composer hanya diberi peringatan, TIDAK dieksekusi otomatis.
 - **Log realtime**: tab Aktivitas/Queue/Scheduler/Poller/Web/Laravel (tail 1,2 dtk, baris ERROR merah, cap 1200 baris).
+- **Log lama (rotasi NSSM)**: tombol “Log lama…” di toolbar log membuka daftar arsip `service-*-YYYYMMDDTHHMMSS.log` (urut terbaru, ada ukuran file); pilih/klik ganda untuk membaca isinya di viewer readonly bertema sama (cap tampilan 2 MB).
 - Hak akses: kontrol layanan butuh Administrator — aplikasi menawarkan elevasi UAC saat dibuka; tanpa admin jadi mode monitor (aksi per klik tetap bisa via UAC).
 - Uji tanpa GUI: `python scripts/deploy/poms-manager.py --selftest` (status layanan, path, web, fingerprint) atau `--smoke`.
 - **Launcher**: `scripts/deploy/poms-manager.bat` — double-click → UAC sekali → GUI langsung Administrator via `pythonw.exe` (tanpa console). Deteksi pythonw dari `where python` (skip WindowsApps stub); mode uji: `set POMS_DRYRUN=1`. Shortcut desktop **POMS Manager** (icon shield) sudah dibuat menunjuk ke bat ini.
