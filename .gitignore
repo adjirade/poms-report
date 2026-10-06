@@ -38,3 +38,7 @@ scripts/ui-audit/results/
 /storage/backups/
 scripts/deploy/nssm.exe
 __pycache__/
+
+# Dokumen markdown kerja — disembunyikan dari GitHub, tetap ada lokal
+*.md
+!/README.md
